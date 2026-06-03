@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Pembayaran;
 use App\Models\Reservasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PembayaranController extends Controller
 {
@@ -17,74 +19,24 @@ class PembayaranController extends Controller
 
     public function index(Request $request)
     {
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
-        $status = $request->status;
-
-        $query = Pembayaran::with([
-            'reservasi.armada',
-            'reservasi.pelanggan'
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER BULAN
-        |--------------------------------------------------------------------------
-        */
-
-        if ($bulan) {
-            $query->whereMonth('tanggal_pembayaran', $bulan);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER TAHUN
-        |--------------------------------------------------------------------------
-        */
-
-        if ($tahun) {
-            $query->whereYear('tanggal_pembayaran', $tahun);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER STATUS
-        |--------------------------------------------------------------------------
-        */
-
-        if ($status) {
-            $query->where('status_pembayaran', $status);
-        }
-
-        $pembayarans = $query
-            ->latest('id_pembayaran')
+        $reservasis = Reservasi::query()
+            ->with([
+                'pelanggan',
+                'armada',
+                'pembayaran',
+            ])
+            ->whereIn('status_reservasi', [
+                Reservasi::STATUS_PENDING,
+                Reservasi::STATUS_PROCESS,
+                Reservasi::STATUS_CONFIRMED,
+            ])
+            ->latest('id_reservasi')
             ->paginate(10);
 
-        /*
-        |--------------------------------------------------------------------------
-        | STATISTIK
-        |--------------------------------------------------------------------------
-        */
-
-        $totalPendapatan = (clone $query)->sum('total_bayar');
-
-        $totalPiutang = (clone $query)->sum('sisa_pembayaran');
-
-        $totalLunas = (clone $query)
-            ->where('status_pembayaran', Pembayaran::STATUS_LUNAS)
-            ->count();
-
-        $totalDP = (clone $query)
-            ->where('status_pembayaran', Pembayaran::STATUS_DP)
-            ->count();
-
-        return view('admin.pembayaran.index', compact(
-            'pembayarans',
-            'totalPendapatan',
-            'totalPiutang',
-            'totalLunas',
-            'totalDP'
-        ));
+        return view(
+            'admin.pembayaran.index',
+            compact('reservasis')
+        );
     }
 
     /*
@@ -96,18 +48,35 @@ class PembayaranController extends Controller
     public function create(Reservasi $reservasi)
     {
         $reservasi->load([
+            'pelanggan',
             'armada',
-            'pelanggan'
+            'pembayaran',
         ]);
+
+        if ($reservasi->isCancelled()) {
+
+            return redirect()
+                ->route('admin.pembayaran.index')
+                ->with('error', 'Reservasi dibatalkan.');
+        }
 
         if ($reservasi->pembayaran) {
 
             return redirect()
-                ->route('admin.pembayaran.index')
+                ->route('admin.pembayaran.edit', $reservasi->pembayaran)
                 ->with('error', 'Reservasi sudah memiliki pembayaran.');
         }
 
-        return view('admin.pembayaran.create', compact('reservasi'));
+        $defaultHargaAwal =
+            $reservasi->armada?->harga_sewa;
+
+        return view(
+            'admin.pembayaran.create',
+            compact(
+                'reservasi',
+                'defaultHargaAwal'
+            )
+        );
     }
 
     /*
@@ -122,100 +91,196 @@ class PembayaranController extends Controller
             'id_reservasi' => [
                 'required',
                 'exists:reservasis,id_reservasi',
-                'unique:pembayarans,id_reservasi'
+                'unique:pembayarans,id_reservasi',
             ],
 
-            'harga_awal' => 'required|numeric|min:0',
+            'jenis_pembayaran' => [
+                'required',
+                'in:DP,Lunas',
+            ],
 
-            'harga_final' => 'required|numeric|min:0',
+            'harga_awal' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
 
-            'dp' => 'nullable|numeric|min:0',
+            'harga_final' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
 
-            'total_bayar' => 'required|numeric|min:0',
+            'dp' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
 
-            'metode_pembayaran' => 'nullable|string|max:255',
+            'metode_pembayaran' => [
+                'required',
+                'string',
+                'max:255',
+            ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | HITUNG SISA PEMBAYARAN
-        |--------------------------------------------------------------------------
-        */
+        $reservasi = Reservasi::with('pembayaran')
+            ->findOrFail($validated['id_reservasi']);
 
-        $sisaPembayaran =
-            $validated['harga_final'] - $validated['total_bayar'];
-
-        /*
-        |--------------------------------------------------------------------------
-        | NORMALISASI NEGATIVE VALUE
-        |--------------------------------------------------------------------------
-        */
-
-        if ($sisaPembayaran < 0) {
-            $sisaPembayaran = 0;
+        if ($reservasi->isCancelled()) {
+            return back()
+                ->withInput()
+                ->with('error', 'Reservasi dibatalkan.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS PEMBAYARAN
-        |--------------------------------------------------------------------------
-        */
-
-        if ($validated['total_bayar'] <= 0) {
-
-            $status = Pembayaran::STATUS_BELUM_BAYAR;
-        } elseif ($validated['total_bayar'] < $validated['harga_final']) {
-
-            $status = Pembayaran::STATUS_DP;
-        } else {
-
-            $status = Pembayaran::STATUS_LUNAS;
+        if ($reservasi->pembayaran) {
+            return back()
+                ->withInput()
+                ->with('error', 'Reservasi sudah memiliki pembayaran.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE PEMBAYARAN
-        |--------------------------------------------------------------------------
-        */
+        DB::transaction(function () use ($validated, $reservasi) {
 
-        Pembayaran::create([
-            'id_reservasi' => $validated['id_reservasi'],
+            $hargaFinal = (float) $validated['harga_final'];
 
-            'harga_awal' => $validated['harga_awal'],
+            $isLunas =
+                $validated['jenis_pembayaran'] === 'Lunas';
 
-            'harga_final' => $validated['harga_final'],
+            $dp = $isLunas
+                ? $hargaFinal
+                : (float) ($validated['dp'] ?? 0);
 
-            'dp' => $validated['dp'] ?? 0,
+            if (!$isLunas) {
 
-            'total_bayar' => $validated['total_bayar'],
+                if ($dp <= 0) {
+                    throw ValidationException::withMessages([
+                        'dp' => 'Nominal DP harus lebih dari 0.',
+                    ]);
+                }
 
-            'sisa_pembayaran' => $sisaPembayaran,
+                if ($dp >= $hargaFinal) {
+                    throw ValidationException::withMessages([
+                        'dp' => 'Nominal DP harus lebih kecil dari harga final.',
+                    ]);
+                }
+            }
 
-            'status_pembayaran' => $status,
+            $totalBayar = $dp;
 
-            'metode_pembayaran' => $validated['metode_pembayaran'],
+            $sisaPembayaran =
+                $hargaFinal - $totalBayar;
 
-            'tanggal_pembayaran' => now(),
-        ]);
+            $statusPembayaran =
+                $sisaPembayaran <= 0
+                ? Pembayaran::STATUS_LUNAS
+                : Pembayaran::STATUS_DP;
+
+            Pembayaran::create([
+                'id_reservasi'       => $reservasi->id_reservasi,
+                'harga_awal'         => $validated['harga_awal'],
+                'harga_final'        => $hargaFinal,
+                'dp'                 => $dp,
+                'total_bayar'        => $totalBayar,
+                'sisa_pembayaran'    => $sisaPembayaran,
+                'status_pembayaran'  => $statusPembayaran,
+                'metode_pembayaran'  => $validated['metode_pembayaran'],
+                'tanggal_pembayaran' => now(),
+            ]);
+
+            $reservasi->update([
+                'status_reservasi' =>
+                $statusPembayaran === Pembayaran::STATUS_LUNAS
+                    ? Reservasi::STATUS_CONFIRMED
+                    : Reservasi::STATUS_PROCESS,
+            ]);
+        });
 
         return redirect()
             ->route('admin.pembayaran.index')
-            ->with('success', 'Data pembayaran berhasil ditambahkan.');
+            ->with('success', 'Pembayaran berhasil ditambahkan.');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW
+    | EDIT
     |--------------------------------------------------------------------------
     */
 
-    public function show(Pembayaran $pembayaran)
+    public function edit(Pembayaran $pembayaran)
     {
         $pembayaran->load([
+            'reservasi.pelanggan',
             'reservasi.armada',
-            'reservasi.pelanggan'
         ]);
 
-        return view('admin.pembayaran.show', compact('pembayaran'));
+        return view(
+            'admin.pembayaran.edit',
+            compact('pembayaran')
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(Request $request, Pembayaran $pembayaran)
+    {
+        $validated = $request->validate([
+            'total_bayar' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'metode_pembayaran' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        DB::transaction(function () use ($validated, $pembayaran) {
+
+            $hargaFinal =
+                (float) $pembayaran->harga_final;
+
+            $totalBayar =
+                (float) $validated['total_bayar'];
+
+            if ($totalBayar > $hargaFinal) {
+                throw ValidationException::withMessages([
+                    'total_bayar' =>
+                    'Total pembayaran tidak boleh melebihi harga final.',
+                ]);
+            }
+
+            $sisaPembayaran =
+                $hargaFinal - $totalBayar;
+
+            $statusPembayaran =
+                $sisaPembayaran <= 0
+                ? Pembayaran::STATUS_LUNAS
+                : Pembayaran::STATUS_DP;
+
+            $pembayaran->update([
+                'total_bayar'       => $totalBayar,
+                'sisa_pembayaran'   => $sisaPembayaran,
+                'status_pembayaran' => $statusPembayaran,
+                'metode_pembayaran' => $validated['metode_pembayaran'],
+            ]);
+
+            $pembayaran->reservasi->update([
+                'status_reservasi' =>
+                $statusPembayaran === Pembayaran::STATUS_LUNAS
+                    ? Reservasi::STATUS_CONFIRMED
+                    : Reservasi::STATUS_PROCESS,
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.pembayaran.index')
+            ->with('success', 'Pembayaran berhasil diperbarui.');
     }
 }

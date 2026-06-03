@@ -28,17 +28,50 @@
                 <!-- Avatar Section -->
                 <div class="flex flex-col items-center space-y-4">
 
+                    <!-- AVATAR -->
                     <img
-    src="{{ Auth::user()->profile_photo 
-        ? asset('storage/' . Auth::user()->profile_photo) 
-        : 'https://ui-avatars.com/api/?name=' . Auth::user()->name }}"
-    class="w-32 h-32 rounded-full object-cover border-4 border-white/10 shadow-lg"
->
-
-                    <label class="cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-4 py-2 rounded-lg hover:opacity-90 transition">
+                        id="photoPreview"
+                        src="{{ Auth::user()->profile_photo
+                            ? asset('storage/' . Auth::user()->profile_photo)
+                            : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->username) }}"
+                        class="
+                            w-32 h-32 rounded-full
+                            object-cover
+                            border-4 border-white/10
+                            shadow-lg
+                        "
+                    >
+                    
+                    <!-- UPLOAD -->
+                    <label
+                        class="
+                            cursor-pointer
+                            bg-gradient-to-r
+                            from-purple-500
+                            to-pink-500
+                            text-white text-sm
+                            px-4 py-2
+                            rounded-xl
+                            hover:opacity-90
+                            transition-all duration-200
+                        "
+                    >
+                    
                         Upload Photo
-                        <input type="file" name="photo" class="hidden">
+                    
+                        <input
+                            type="file"
+                            name="photo"
+                            id="photoInput"
+                            accept="image/*"
+                            class="hidden"
+                        >
+                    
                     </label>
+                    
+                    <p class="text-xs text-gray-400 text-center">
+                        PNG, JPG, JPEG max 2MB
+                    </p>
 
                     <p class="text-xs text-gray-400 text-center">
                         PNG, JPG max 2MB
@@ -119,5 +152,75 @@
     </div>
 
 </div>
+@push('scripts')
 
+<script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const photoInput =
+            document.getElementById('photoInput');
+
+        const photoPreview =
+            document.getElementById('photoPreview');
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIVE IMAGE PREVIEW
+        |--------------------------------------------------------------------------
+        */
+
+        photoInput.addEventListener('change', (event) => {
+
+            const file =
+                event.target.files[0];
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATE FILE EXIST
+            |--------------------------------------------------------------------------
+            */
+
+            if (!file) {
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATE IMAGE TYPE
+            |--------------------------------------------------------------------------
+            */
+
+            if (!file.type.startsWith('image/')) {
+
+                alert('File harus berupa gambar.');
+
+                photoInput.value = '';
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | FILE READER
+            |--------------------------------------------------------------------------
+            */
+
+            const reader =
+                new FileReader();
+
+            reader.onload = (e) => {
+
+                photoPreview.src =
+                    e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+    });
+
+</script>
+
+@endpush
 @endsection

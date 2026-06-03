@@ -26,11 +26,11 @@ class Pembayaran extends Model
     ];
 
     protected $casts = [
-        'harga_awal' => 'decimal:2',
-        'harga_final' => 'decimal:2',
-        'dp' => 'decimal:2',
-        'total_bayar' => 'decimal:2',
-        'sisa_pembayaran' => 'decimal:2',
+        'harga_awal' => 'integer',
+        'harga_final' => 'integer',
+        'dp' => 'integer',
+        'total_bayar' => 'integer',
+        'sisa_pembayaran' => 'integer',
         'tanggal_pembayaran' => 'date',
     ];
 

@@ -51,16 +51,16 @@
 
             </a>
 
-            <a href="{{ route('admin.reservasi.create') }}"
+            {{-- <a href="{{ route('admin.reservasi.create') }}"
                 class="
                     inline-flex items-center gap-2
                     px-5 py-3 rounded-xl
                     bg-pink-600 hover:bg-pink-700
                     transition-all duration-200
                     shadow-lg shadow-pink-600/20
-                ">
+                "> --}}
 
-                <svg xmlns="http://www.w3.org/2000/svg"
+                {{-- <svg xmlns="http://www.w3.org/2000/svg"
                     class="w-5 h-5"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -74,7 +74,7 @@
 
                 Input Reservasi
 
-            </a>
+            </a> --}}
 
         </div>
 

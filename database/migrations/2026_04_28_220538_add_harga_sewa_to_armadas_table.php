@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('armadas', function (Blueprint $table) {
-            $table->decimal('harga_sewa', 12, 2)->after('kapasitas');
+            $table->unsignedBigInteger('harga_sewa')->default(0)->after('kapasitas');
         });
     }
 

@@ -5,82 +5,209 @@
 
 @section('content')
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-6">
 
     {{-- HEADER --}}
     <div>
-        <h2 class="text-2xl font-bold text-white">Laporan Bulanan</h2>
+
+        <h2 class="text-2xl font-bold text-white">
+            Laporan Bulanan
+        </h2>
+
         <p class="text-sm text-blue-300">
-            Preview data reservasi bulan 
-{{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
+            Periode
+            {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
+            {{ $tahun }}
         </p>
+
     </div>
 
-    {{-- FILTER + ACTION --}}
-    <div class="flex flex-wrap gap-3 items-center justify-between">
+    {{-- FILTER --}}
+    <div class="flex flex-wrap items-center justify-between gap-3">
 
-        <form method="GET" class="flex gap-3">
+        <form
+            method="GET"
+            class="flex flex-wrap gap-3"
+        >
 
-            {{-- BULAN --}}
-            <select name="bulan" class="px-3 py-2 pr-8 rounded-lg bg-white text-black text-sm">
+            <select
+                name="bulan"
+                class="rounded-lg bg-white px-3 py-2 pr-8 text-sm text-black"
+            >
+
                 @for ($i = 1; $i <= 12; $i++)
-                    <option value="{{ $i }}" {{ $bulan == $i ? 'selected' : '' }}>
+
+                    <option
+                        value="{{ $i }}"
+                        @selected($bulan == $i)
+                    >
+
                         {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
+
                     </option>
+
                 @endfor
+
             </select>
-        
-            {{-- TAHUN --}}
-            <select name="tahun" class="px-3 py-2 pr-8 rounded-lg bg-white text-black text-sm">
+
+            <select
+                name="tahun"
+                class="rounded-lg bg-white px-3 py-2 pr-8 text-sm text-black"
+            >
+
                 @for ($y = now()->year; $y >= now()->year - 5; $y--)
-                    <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>
+
+                    <option
+                        value="{{ $y }}"
+                        @selected($tahun == $y)
+                    >
+
                         {{ $y }}
+
                     </option>
+
                 @endfor
+
             </select>
-        
-            <button class="bg-indigo-600 px-4 py-2 rounded-lg text-white text-sm hover:bg-indigo-700 transition">
+
+            <button
+                class="
+                    rounded-lg
+                    bg-indigo-600
+                    px-4 py-2
+                    text-sm text-white
+                    transition
+                    hover:bg-indigo-700
+                "
+            >
+
                 Filter
+
             </button>
-        
+
         </form>
 
-        <a href="{{ route('admin.laporan.pdf', ['bulan' => $bulan, 'tahun' => $tahun]) }}"
-           target="_blank"
-           class="bg-red-600 px-4 py-2 rounded-lg text-white text-sm hover:bg-red-700 transition">
-           Export PDF
+        <a
+            href="{{ route('admin.laporan.pdf', ['bulan' => $bulan, 'tahun' => $tahun]) }}"
+            target="_blank"
+            class="
+                rounded-lg
+                bg-red-600
+                px-4 py-2
+                text-sm text-white
+                transition
+                hover:bg-red-700
+            "
+        >
+
+            Export PDF
+
         </a>
 
     </div>
 
     {{-- SUMMARY --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
 
-        <div class="bg-white rounded-xl p-4 shadow border">
-            <p class="text-sm text-slate-500">Total Reservasi</p>
-            <p class="text-xl font-bold text-slate-800">
+        <div class="rounded-xl border bg-white p-5 shadow">
+
+            <p class="text-sm text-slate-500">
+                Total Reservasi
+            </p>
+
+            <p class="mt-2 text-3xl font-bold text-slate-800">
                 {{ $totalReservasi }}
             </p>
+
         </div>
 
-        <div class="bg-white rounded-xl p-4 shadow border">
-            <p class="text-sm text-slate-500">Dikonfirmasi</p>
-            <p class="text-xl font-bold text-green-600">
-                {{ $statusSummary['Dikonfirmasi'] ?? 0 }}
+        <div class="rounded-xl border bg-white p-5 shadow">
+
+            <p class="text-sm text-slate-500">
+                Total Pemasukan
             </p>
+
+            <p
+                class="mt-2 text-2xl font-bold text-green-600"
+                data-currency-text="{{ $totalPemasukan }}"
+            >
+            </p>
+
         </div>
 
-        <div class="bg-white rounded-xl p-4 shadow border">
-            <p class="text-sm text-slate-500">Dibatalkan</p>
-            <p class="text-xl font-bold text-red-600">
-                {{ $statusSummary['Dibatalkan'] ?? 0 }}
+        <div class="rounded-xl border bg-white p-5 shadow">
+
+            <p class="text-sm text-slate-500">
+                Pembayaran Lunas
             </p>
+
+            <p class="mt-2 text-3xl font-bold text-blue-600">
+                {{ $totalLunas }}
+            </p>
+
+        </div>
+
+        <div class="rounded-xl border bg-white p-5 shadow">
+
+            <p class="text-sm text-slate-500">
+                Pembayaran DP
+            </p>
+
+            <p class="mt-2 text-3xl font-bold text-yellow-600">
+                {{ $totalDP }}
+            </p>
+
+        </div>
+
+        <div class="rounded-xl border bg-white p-5 shadow">
+
+            <p class="text-sm text-slate-500">
+                Sisa Piutang
+            </p>
+
+            <p
+                class="mt-2 text-2xl font-bold text-red-600"
+                data-currency-text="{{ $totalPiutang }}"
+            >
+            </p>
+
         </div>
 
     </div>
 
-    {{-- TABLE --}}
-    <div class="bg-white rounded-2xl shadow border overflow-hidden">
+    {{-- ARMADA TERLARIS --}}
+    @if($armadaTerlaris)
+
+    <div class="rounded-2xl border bg-white p-6 shadow">
+
+        <h3 class="text-lg font-bold text-slate-800">
+            Armada Terlaris
+        </h3>
+
+        <div class="mt-3">
+
+            <p class="text-2xl font-semibold text-indigo-600">
+
+                {{ $armadaTerlaris->armada?->jenis_kendaraan }}
+
+            </p>
+
+            <p class="text-sm text-slate-500">
+
+                Digunakan
+                {{ $armadaTerlaris->total }}
+                kali selama periode ini
+
+            </p>
+
+        </div>
+
+    </div>
+
+    @endif
+
+    {{-- TABEL --}}
+    <div class="overflow-hidden rounded-2xl border bg-white shadow">
 
         @if($reservasis->count())
 
@@ -88,71 +215,169 @@
 
             <table class="w-full text-sm">
 
-                {{-- HEAD --}}
-                <thead class="bg-slate-100 text-slate-700 uppercase text-xs tracking-wide">
+                <thead
+                    class="
+                        bg-slate-100
+                        text-xs
+                        uppercase
+                        tracking-wide
+                        text-slate-700
+                    "
+                >
+
                     <tr>
-                        <th class="px-5 py-4 text-left">Pelanggan</th>
-                        <th class="px-5 py-4 text-left">Armada</th>
-                        <th class="px-5 py-4 text-left">Perjalanan</th>
-                        <th class="px-5 py-4 text-center">Status</th>
+
+                        <th class="px-5 py-4 text-left">
+                            Pelanggan
+                        </th>
+
+                        <th class="px-5 py-4 text-left">
+                            Armada
+                        </th>
+
+                        <th class="px-5 py-4 text-left">
+                            Tujuan
+                        </th>
+
+                        <th class="px-5 py-4 text-left">
+                            Tanggal
+                        </th>
+
+                        <th class="px-5 py-4 text-left">
+                            Harga Final
+                        </th>
+
+                        <th class="px-5 py-4 text-left">
+                            Pembayaran
+                        </th>
+
+                        <th class="px-5 py-4 text-center">
+                            Status
+                        </th>
+
                     </tr>
+
                 </thead>
 
-                {{-- BODY --}}
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-slate-200">
 
-                    @foreach ($reservasis as $reservasi)
+                    @foreach($reservasis as $reservasi)
 
-                    <tr class="hover:bg-indigo-50 transition">
+                    <tr class="transition hover:bg-slate-50">
 
-                        {{-- Pelanggan --}}
+                        {{-- PELANGGAN --}}
                         <td class="px-5 py-4">
-                            <p class="font-semibold text-slate-900">
-                                {{ optional($reservasi->pelanggan)->nama ?? '-' }}
+
+                            <p class="font-semibold text-slate-800">
+
+                                {{ $reservasi->pelanggan?->nama ?? '-' }}
+
                             </p>
-                            <p class="text-xs text-indigo-500">
-                                {{ optional($reservasi->pelanggan)->no_hp ?? '-' }}
+
+                            <p class="text-xs text-slate-500">
+
+                                {{ $reservasi->pelanggan?->no_hp ?? '-' }}
+
                             </p>
+
                         </td>
 
-                        {{-- Armada --}}
+                        {{-- ARMADA --}}
                         <td class="px-5 py-4">
+
                             <p class="font-medium text-slate-800">
-                                {{ optional($reservasi->armada)->jenis_kendaraan ?? '-' }}
+
+                                {{ $reservasi->armada?->jenis_kendaraan ?? '-' }}
+
                             </p>
-                            <p class="text-xs text-indigo-500">
-                                Kapasitas: {{ optional($reservasi->armada)->kapasitas ?? '-' }}
-                            </p>
+
                         </td>
 
-                        {{-- Perjalanan --}}
+                        {{-- TUJUAN --}}
                         <td class="px-5 py-4">
-                            <p class="font-semibold text-slate-900">
-                                {{ $reservasi->formatted_tanggal }}
-                            </p>
-                            <p class="text-sm text-slate-700">
-                                {{ $reservasi->formatted_waktu }}
-                            </p>
-                            <p class="text-xs text-indigo-500 mt-1">
-                                {{ $reservasi->tujuan ?? '-' }}
-                            </p>
+
+                            {{ $reservasi->tujuan ?? '-' }}
+
                         </td>
 
-                        {{-- Status --}}
+                        {{-- TANGGAL --}}
+                        <td class="px-5 py-4">
+
+                            {{ \Carbon\Carbon::parse($reservasi->tanggal_reservasi)->format('d M Y') }}
+
+                        </td>
+
+                        {{-- HARGA --}}
+                        <td class="px-5 py-4">
+
+                            <span
+                                data-currency-text="{{ $reservasi->pembayaran?->harga_final ?? 0 }}"
+                            >
+                            </span>
+
+                        </td>
+
+                        {{-- PEMBAYARAN --}}
+                        <td class="px-5 py-4">
+
+                            @if($reservasi->pembayaran)
+
+                                <div>
+
+                                    <p
+                                        class="font-semibold text-green-600"
+                                        data-currency-text="{{ $reservasi->pembayaran->total_bayar }}"
+                                    >
+                                    </p>
+
+                                    <p
+                                        class="text-xs text-red-500"
+                                        data-currency-text="{{ $reservasi->pembayaran->sisa_pembayaran }}"
+                                    >
+                                    </p>
+
+                                </div>
+
+                            @else
+
+                                -
+
+                            @endif
+
+                        </td>
+
+                        {{-- STATUS --}}
                         <td class="px-5 py-4 text-center">
+
                             <span
                                 @class([
-                                    'px-3 py-1 text-xs font-semibold rounded-full',
+                                    'rounded-full px-3 py-1 text-xs font-semibold',
 
-                                    'bg-yellow-100 text-yellow-700' => $reservasi->status === 'pending',
-                                    'bg-green-100 text-green-700' => $reservasi->status === 'dikonfirmasi',
-                                    'bg-red-100 text-red-700' => $reservasi->status === 'dibatalkan',
+                                    'bg-green-100 text-green-700'
+                                        => $reservasi->status_reservasi === 'Dikonfirmasi',
 
-                                    'bg-gray-100 text-gray-700' => true,
+                                    'bg-yellow-100 text-yellow-700'
+                                        => $reservasi->status_reservasi === 'Pending',
+
+                                    'bg-red-100 text-red-700'
+                                        => $reservasi->status_reservasi === 'Dibatalkan',
+
+                                    'bg-slate-100 text-slate-700'
+                                        => !in_array(
+                                            $reservasi->status_reservasi,
+                                            [
+                                                'Pending',
+                                                'Dikonfirmasi',
+                                                'Dibatalkan'
+                                            ]
+                                        ),
                                 ])
                             >
-                                {{ $reservasi->status_label }}
+
+                                {{ $reservasi->status_reservasi }}
+
                             </span>
+
                         </td>
 
                     </tr>
@@ -167,8 +392,12 @@
 
         @else
 
-        <div class="text-center py-16">
-            <p class="text-slate-600 text-sm">Tidak ada data pada periode ini</p>
+        <div class="py-16 text-center">
+
+            <p class="text-sm text-slate-500">
+                Tidak ada data pada periode ini.
+            </p>
+
         </div>
 
         @endif

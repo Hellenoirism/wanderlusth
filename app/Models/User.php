@@ -17,6 +17,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    public const ROLE_ADMIN = 'admin';
+    
     protected $fillable = [
         'username',
         'email',
@@ -34,7 +37,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
     /**
      * Get the attributes that should be cast.
      *

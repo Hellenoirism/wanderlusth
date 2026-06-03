@@ -36,31 +36,7 @@
             </span>
         </div>
 
-        @if($reservasi->isPending())
-        <div class="flex gap-3">
-
-            <form method="POST" action="{{ route('admin.reservasi.update-status', $reservasi) }}">
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="status_reservasi" value="dikonfirmasi">
-
-                <button class="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 text-sm shadow">
-                    Setujui
-                </button>
-            </form>
-
-            <form method="POST" action="{{ route('admin.reservasi.update-status', $reservasi) }}">
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="status_reservasi" value="dibatalkan">
-
-                <button class="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 text-sm shadow">
-                    Tolak
-                </button>
-            </form>
-
-        </div>
-        @endif
+        
 
     </div>
 

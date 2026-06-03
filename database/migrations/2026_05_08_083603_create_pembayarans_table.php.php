@@ -17,15 +17,15 @@ return new class extends Migration
 
             $table->unsignedBigInteger('id_reservasi')->unique();
 
-            $table->decimal('harga_awal', 15, 2)->default(0);
+            $table->unsignedBigInteger('harga_awal')->default(0);
 
-            $table->decimal('harga_final', 15, 2)->default(0);
+            $table->unsignedBigInteger('harga_final')->default(0);
 
-            $table->decimal('dp', 15, 2)->default(0);
+            $table->unsignedBigInteger('dp')->default(0);
 
-            $table->decimal('total_bayar', 15, 2)->default(0);
+            $table->unsignedBigInteger('total_bayar')->default(0);
 
-            $table->decimal('sisa_pembayaran', 15, 2)->default(0);
+            $table->unsignedBigInteger('sisa_pembayaran')->default(0);
 
             $table->enum('status_pembayaran', [
                 'Belum Bayar',

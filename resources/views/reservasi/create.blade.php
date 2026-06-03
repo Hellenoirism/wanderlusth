@@ -118,13 +118,6 @@
                         class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2">
                 </div>
 
-                {{-- CATATAN --}}
-                <div>
-                    <label class="text-sm text-gray-400">Catatan (Opsional)</label>
-                    <textarea name="catatan" rows="3"
-                        class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2"></textarea>
-                </div>
-
                 {{-- BUTTON --}}
                 <button type="submit"
                     class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition">

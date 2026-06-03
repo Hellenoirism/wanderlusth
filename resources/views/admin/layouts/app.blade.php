@@ -327,40 +327,179 @@
 
             <!-- USER -->
             <div class="
+                relative
                 border-t border-white/10
                 p-4 bg-white/[0.02]
             ">
-
-                <a href="{{ route('admin.profile') }}"
+            
+                <button
+                    id="userMenuButton"
+                    type="button"
                     class="
+                        w-full
                         flex items-center gap-3
                         p-3 rounded-2xl
                         hover:bg-white/5
                         transition-all duration-200
-                    ">
-
+                        text-left
+                    "
+                >
+            
                     <img
-                        src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) }}"
+                        src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->username) }}"
                         class="
                             w-12 h-12 rounded-full
                             object-cover
                             border border-white/10
-                        ">
-
-                    <div class="min-w-0">
-
+                        "
+                    >
+            
+                    <div class="min-w-0 flex-1">
+            
                         <p class="font-medium truncate">
-                            {{ auth()->user()->name }}
+                            {{ auth()->user()->username }}
                         </p>
-
+            
                         <p class="text-xs text-slate-400">
                             Administrator
                         </p>
-
+            
                     </div>
-
-                </a>
-
+            
+                    <!-- ICON -->
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="
+                            w-5 h-5 text-slate-400
+                            transition-transform duration-200
+                        "
+                        id="userMenuArrow"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+            
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        />
+            
+                    </svg>
+            
+                </button>
+            
+                <!-- DROPDOWN -->
+                <div
+                    id="userDropdown"
+                    class="
+                        absolute
+                        bottom-full left-4 right-4 mb-3
+                        hidden
+                        overflow-hidden
+                        rounded-2xl
+                        border border-white/10
+                        bg-slate-900/95
+                        backdrop-blur-xl
+                        shadow-2xl
+                        shadow-black/40
+                        z-50
+                    "
+                >
+            
+                    <!-- HEADER -->
+                    <div class="p-4 border-b border-white/10">
+            
+                        <p class="font-semibold text-white truncate">
+                            {{ auth()->user()->username }}
+                        </p>
+            
+                        <p class="text-sm text-slate-400 truncate">
+                            {{ auth()->user()->email }}
+                        </p>
+            
+                    </div>
+            
+                    <!-- MENU -->
+                    <div class="p-2 space-y-1">
+            
+                        <!-- PROFILE -->
+                        <a
+                            href="{{ route('admin.profile') }}"
+                            class="
+                                flex items-center gap-3
+                                px-4 py-3 rounded-xl
+                                text-sm text-slate-300
+                                hover:bg-white/5
+                                hover:text-white
+                                transition-all duration-200
+                            "
+                        >
+            
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+            
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+            
+                            </svg>
+            
+                            Profile
+            
+                        </a>
+            
+                        <!-- LOGOUT -->
+                        <form
+                            action="{{ route('logout') }}"
+                            method="POST"
+                        >
+            
+                            @csrf
+            
+                            <button
+                                type="submit"
+                                class="
+                                    w-full
+                                    flex items-center gap-3
+                                    px-4 py-3 rounded-xl
+                                    text-sm text-red-400
+                                    hover:bg-red-500/10
+                                    hover:text-red-300
+                                    transition-all duration-200
+                                "
+                            >
+            
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+            
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m0 14a2 2 0 01-2-2V5a2 2 0 012-2"
+                                    />
+            
+                                </svg>
+            
+                                Logout
+            
+                            </button>
+            
+                        </form>
+            
+                    </div>
+            
+                </div>
+            
             </div>
 
         </aside>
@@ -408,7 +547,7 @@
                         <div class="text-right hidden sm:block">
 
                             <p class="text-sm font-medium">
-                                {{ auth()->user()->name }}
+                                {{ auth()->user()->username }}
                             </p>
 
                             <p class="text-xs text-slate-400">
@@ -418,7 +557,7 @@
                         </div>
 
                         <img
-                            src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) }}"
+                            src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->username) }}"
                             class="
                                 w-11 h-11 rounded-full
                                 object-cover
@@ -456,6 +595,56 @@
     </div>
 
     @stack('scripts')
+    <script>
+
+        document.addEventListener('DOMContentLoaded', () => {
+    
+            const button =
+                document.getElementById('userMenuButton');
+    
+            const dropdown =
+                document.getElementById('userDropdown');
+    
+            const arrow =
+                document.getElementById('userMenuArrow');
+    
+            /*
+            |--------------------------------------------------------------------------
+            | TOGGLE DROPDOWN
+            |--------------------------------------------------------------------------
+            */
+    
+            button.addEventListener('click', (e) => {
+    
+                e.stopPropagation();
+    
+                dropdown.classList.toggle('hidden');
+    
+                arrow.classList.toggle('rotate-180');
+            });
+    
+            /*
+            |--------------------------------------------------------------------------
+            | CLOSE WHEN CLICK OUTSIDE
+            |--------------------------------------------------------------------------
+            */
+    
+            document.addEventListener('click', (e) => {
+    
+                if (
+                    !dropdown.contains(e.target) &&
+                    !button.contains(e.target)
+                ) {
+    
+                    dropdown.classList.add('hidden');
+    
+                    arrow.classList.remove('rotate-180');
+                }
+            });
+    
+        });
+    
+    </script>
 
 </body>
 

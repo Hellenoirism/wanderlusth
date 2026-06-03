@@ -9,58 +9,127 @@ use Illuminate\Http\Request;
 class ReservasiController extends Controller
 {
     /*
-      List semua reservasi
-     */
+    |--------------------------------------------------------------------------
+    | INDEX
+    |--------------------------------------------------------------------------
+    */
+
     public function index()
     {
-        
-        $reservasis = Reservasi::with(['pelanggan', 'armada'])
-            ->latest()
-            ->get();
+        $reservasis = Reservasi::query()
+            ->with([
+                'pelanggan',
+                'armada',
+                'pembayaran'
+            ])
+            ->latest('id_reservasi')
+            ->paginate(10);
 
-        return view('admin.reservasi.index', compact('reservasis'));
+        return view(
+            'admin.reservasi.index',
+            compact('reservasis')
+        );
     }
 
     /*
-      Detail reservasi
-     */
+    |--------------------------------------------------------------------------
+    | SHOW
+    |--------------------------------------------------------------------------
+    */
+
     public function show(Reservasi $reservasi)
     {
-        $reservasi->load(['pelanggan', 'armada']);
+        $reservasi->load([
+            'pelanggan',
+            'armada',
+            'pembayaran'
+        ]);
 
-        return view('admin.reservasi.show', compact('reservasi'));
+        return view(
+            'admin.reservasi.show',
+            compact('reservasi')
+        );
     }
 
     /*
-      Update status (approve / cancel)
-     */
-    public function updateStatus(Request $request, Reservasi $reservasi)
-    {
+    |--------------------------------------------------------------------------
+    | UPDATE STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateStatus(
+        Request $request,
+        Reservasi $reservasi
+    ) {
         $validated = $request->validate([
-            'status_reservasi' => 'required|in:pending,dikonfirmasi,dibatalkan'
+            'status_reservasi' => [
+                'required',
+                'in:' . implode(',', Reservasi::statusOptions())
+            ]
         ]);
 
-        // prevent update kalau sudah final
-        if (in_array($reservasi->status_reservasi, ['dikonfirmasi', 'dibatalkan'])) {
-            return back()->with('error', 'Status sudah final, tidak bisa diubah');
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI FINAL STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $reservasi->isConfirmed()
+            || $reservasi->isCancelled()
+        ) {
+            return back()->with(
+                'error',
+                'Status reservasi sudah final.'
+            );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE STATUS
+        |--------------------------------------------------------------------------
+        */
+
         $reservasi->update([
-            'status_reservasi' => $validated['status_reservasi']
+            'status_reservasi' =>
+            $validated['status_reservasi']
         ]);
 
-        return back()->with('success', 'Status berhasil diperbarui');
+        return back()->with(
+            'success',
+            'Status reservasi berhasil diperbarui.'
+        );
     }
 
     /*
-     Hapus reservasi
-     */
+    |--------------------------------------------------------------------------
+    | DESTROY
+    |--------------------------------------------------------------------------
+    */
+
     public function destroy(Reservasi $reservasi)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | CEGAH HAPUS JIKA SUDAH ADA PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        if ($reservasi->pembayaran) {
+
+            return back()->with(
+                'error',
+                'Reservasi yang memiliki pembayaran tidak dapat dihapus.'
+            );
+        }
+
         $reservasi->delete();
 
         return redirect()
             ->route('admin.reservasi.index')
-            ->with('success', 'Reservasi berhasil dihapus');
+            ->with(
+                'success',
+                'Reservasi berhasil dihapus.'
+            );
     }
 }
