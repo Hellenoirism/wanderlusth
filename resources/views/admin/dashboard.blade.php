@@ -23,61 +23,6 @@
             </p>
         </div>
 
-        <!-- QUICK ACTION -->
-        <div class="flex flex-wrap gap-3">
-
-            <a href="{{ route('admin.armada.create') }}"
-                class="
-                    inline-flex items-center gap-2
-                    px-5 py-3 rounded-xl
-                    bg-indigo-600 hover:bg-indigo-700
-                    transition-all duration-200
-                    shadow-lg shadow-indigo-600/20
-                ">
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    class="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4" />
-                </svg>
-
-                Tambah Armada
-
-            </a>
-
-            {{-- <a href="{{ route('admin.reservasi.create') }}"
-                class="
-                    inline-flex items-center gap-2
-                    px-5 py-3 rounded-xl
-                    bg-pink-600 hover:bg-pink-700
-                    transition-all duration-200
-                    shadow-lg shadow-pink-600/20
-                "> --}}
-
-                {{-- <svg xmlns="http://www.w3.org/2000/svg"
-                    class="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4" />
-                </svg>
-
-                Input Reservasi
-
-            </a> --}}
-
-        </div>
-
     </div>
 
     <!-- STATS -->

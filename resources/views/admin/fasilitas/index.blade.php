@@ -15,7 +15,7 @@
 
         <a href="{{ route('admin.fasilitas.create') }}"
            class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl shadow hover:bg-indigo-700 transition">
-            + Tambah
+            <b>+ Tambahkan Fasilitas</b>
         </a>
     </div>
 

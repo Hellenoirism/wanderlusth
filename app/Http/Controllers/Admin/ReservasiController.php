@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservasi;
+use App\Models\Armada;
+use App\Models\Pelanggan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservasiController extends Controller
 {
@@ -33,7 +36,7 @@ class ReservasiController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW
+    | FUNGSI SHOW
     |--------------------------------------------------------------------------
     */
 
@@ -49,6 +52,70 @@ class ReservasiController extends Controller
             'admin.reservasi.show',
             compact('reservasi')
         );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | FUNGSI STORE & CREATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function create()
+    {
+        $pelanggans = Pelanggan::orderBy('nama')->get();
+
+        $armadas = Armada::orderBy('jenis_kendaraan')->get();
+
+        return view(
+            'admin.reservasi.create',
+            compact(
+                'pelanggans',
+                'armadas'
+            )
+        );
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_pelanggan'      => 'required|string|max:255',
+            'alamat'              => 'required|string',
+            'no_hp'               => 'required|string|max:20',
+
+            'id_armada'           => 'required|exists:armadas,id_armada',
+
+            'tujuan'              => 'required|string|max:255',
+
+            'tanggal_reservasi'   => 'required|date',
+
+            'waktu'               => 'required',
+
+            'jumlah_penumpang'    => 'required|integer|min:1',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+
+            $pelanggan = Pelanggan::create([
+                'nama'    => $validated['nama_pelanggan'],
+                'alamat'  => $validated['alamat'],
+                'no_hp'   => $validated['no_hp'],
+            ]);
+
+            Reservasi::create([
+                'id_pelanggan'      => $pelanggan->id_pelanggan,
+                'id_armada'         => $validated['id_armada'],
+                'tujuan'            => $validated['tujuan'],
+                'tanggal_reservasi' => $validated['tanggal_reservasi'],
+                'waktu'             => $validated['waktu'],
+                'jumlah_penumpang'  => $validated['jumlah_penumpang'],
+                'status_reservasi'  => Reservasi::STATUS_PENDING,
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.reservasi.index')
+            ->with('success', 'Reservasi berhasil ditambahkan.');
     }
 
     /*

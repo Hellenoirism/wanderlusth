@@ -106,6 +106,8 @@ Route::prefix('admin')
                 'index',
                 'show',
                 'destroy',
+                'create',
+                'store'
             ]);
 
         Route::put(

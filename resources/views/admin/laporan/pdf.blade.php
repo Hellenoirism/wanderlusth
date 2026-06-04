@@ -5,195 +5,275 @@
     <title>Laporan Reservasi</title>
 
     <style>
-        body {
+
+        body{
             font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            color: #2d3748;
+            font-size:11px;
+            color:#1e293b;
         }
 
-        .container {
-            padding: 10px 20px;
+        .header{
+            border-bottom:2px solid #4f46e5;
+            padding-bottom:10px;
+            margin-bottom:15px;
         }
 
-        /* HEADER */
-        .header {
-            border-bottom: 2px solid #4f46e5;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+        .header h1{
+            margin:0;
+            font-size:18px;
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
-            color: #1e293b;
+        .header p{
+            margin:2px 0;
         }
 
-        .header p {
-            margin: 2px 0;
-            font-size: 11px;
-            color: #64748b;
+        .summary-table{
+            width:100%;
+            margin-bottom:15px;
         }
 
-        .meta {
-            margin-top: 8px;
-            font-size: 11px;
+        .summary-table td{
+            width:20%;
+            border:1px solid #d1d5db;
+            padding:8px;
+            text-align:center;
         }
 
-        /* SUMMARY */
-        .summary {
-            margin: 15px 0;
+        .summary-title{
+            font-size:10px;
+            color:#64748b;
         }
 
-        .summary-box {
-            display: inline-block;
-            width: 30%;
-            border: 1px solid #e5e7eb;
-            padding: 8px;
-            margin-right: 1.5%;
-            border-radius: 4px;
-            text-align: center;
+        .summary-value{
+            font-size:14px;
+            font-weight:bold;
+            margin-top:4px;
         }
 
-        .summary-title {
-            font-size: 10px;
-            color: #6b7280;
+        table{
+            width:100%;
+            border-collapse:collapse;
         }
 
-        .summary-value {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 4px;
+        th{
+            background:#f1f5f9;
+            border:1px solid #cbd5e1;
+            padding:6px;
+            font-size:10px;
         }
 
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+        td{
+            border:1px solid #e2e8f0;
+            padding:6px;
+            font-size:10px;
+            vertical-align:top;
         }
 
-        th {
-            background: #f1f5f9;
-            padding: 8px;
-            border: 1px solid #d1d5db;
-            font-size: 11px;
-            text-align: left;
+        .small{
+            font-size:9px;
+            color:#64748b;
         }
 
-        td {
-            padding: 8px;
-            border: 1px solid #e5e7eb;
-            vertical-align: top;
+        .text-center{
+            text-align:center;
         }
 
-        .text-center {
-            text-align: center;
+        .footer{
+            margin-top:15px;
+            text-align:right;
+            font-size:10px;
+            color:#64748b;
         }
 
-        .small {
-            font-size: 10px;
-            color: #6b7280;
+        .armada-box{
+            border:1px solid #d1d5db;
+            padding:10px;
+            margin-bottom:15px;
         }
 
-        /* FOOTER */
-        .footer {
-            margin-top: 20px;
-            font-size: 10px;
-            text-align: right;
-            color: #6b7280;
-        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="header">
 
-    {{-- HEADER --}}
-    <div class="header">
-        <h1>Laporan Reservasi Bus Pariwisata</h1>
-        <p>Sistem Manajemen Reservasi</p>
+    <h1>Laporan Reservasi Bus Pariwisata</h1>
 
-        <div class="meta">
-            Periode:
-            <strong>
-                {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
-            </strong>
-            <br>
-            Dicetak pada:
-            {{ now()->translatedFormat('d F Y H:i') }}
-        </div>
-    </div>
+    <p>
+        Periode
+        {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
+        {{ $tahun }}
+    </p>
 
-    {{-- SUMMARY --}}
-    <div class="summary">
+    <p>
+        Dicetak:
+        {{ now()->translatedFormat('d F Y H:i') }}
+    </p>
 
-        <div class="summary-box">
+</div>
+
+{{-- SUMMARY --}}
+<table class="summary-table">
+    <tr>
+
+        <td>
             <div class="summary-title">Total Reservasi</div>
-            <div class="summary-value">{{ $totalReservasi }}</div>
-        </div>
+            <div class="summary-value">
+                {{ $totalReservasi }}
+            </div>
+        </td>
 
-        <div class="summary-box">
-            <div class="summary-title">Dikonfirmasi</div>
-            <div class="summary-value">{{ $statusSummary['Dikonfirmasi'] ?? 0 }}</div>
-        </div>
+        <td>
+            <div class="summary-title">Total Pemasukan</div>
+            <div class="summary-value">
+                Rp {{ number_format($totalPemasukan,0,',','.') }}
+            </div>
+        </td>
 
-        <div class="summary-box">
-            <div class="summary-title">Dibatalkan</div>
-            <div class="summary-value">{{ $statusSummary['Dibatalkan'] ?? 0 }}</div>
-        </div>
+        <td>
+            <div class="summary-title">Pembayaran Lunas</div>
+            <div class="summary-value">
+                {{ $totalLunas }}
+            </div>
+        </td>
 
-    </div>
+        <td>
+            <div class="summary-title">Pembayaran DP</div>
+            <div class="summary-value">
+                {{ $totalDP }}
+            </div>
+        </td>
 
-    {{-- TABLE --}}
-    <table>
-        <thead>
-            <tr>
-                <th>Pelanggan</th>
-                <th>Armada</th>
-                <th>Perjalanan</th>
-                <th class="text-center">Status</th>
-            </tr>
-        </thead>
+        <td>
+            <div class="summary-title">Sisa Piutang</div>
+            <div class="summary-value">
+                Rp {{ number_format($totalPiutang,0,',','.') }}
+            </div>
+        </td>
 
-        <tbody>
-            @foreach ($reservasis as $reservasi)
+    </tr>
+</table>
+
+{{-- ARMADA TERLARIS --}}
+@if($armadaTerlaris)
+
+<div class="armada-box">
+
+    <strong>Armada Terlaris</strong><br>
+
+    {{ $armadaTerlaris->armada?->jenis_kendaraan ?? '-' }}
+
+    ({{ $armadaTerlaris->total }} Reservasi)
+
+</div>
+
+@endif
+
+{{-- DETAIL RESERVASI --}}
+<table>
+
+    <thead>
+
+        <tr>
+
+            <th>Pelanggan</th>
+            <th>Armada</th>
+            <th>Tujuan</th>
+            <th>Tanggal</th>
+            <th>Harga Final</th>
+            <th>Total Bayar</th>
+            <th>Sisa</th>
+            <th>Status</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        @forelse($reservasis as $reservasi)
+
             <tr>
 
                 <td>
-                    {{ optional($reservasi->pelanggan)->nama ?? '-' }}<br>
+
+                    {{ $reservasi->pelanggan?->nama ?? '-' }}
+
+                    <br>
+
                     <span class="small">
-                        {{ optional($reservasi->pelanggan)->no_hp ?? '-' }}
+                        {{ $reservasi->pelanggan?->no_hp ?? '-' }}
                     </span>
+
                 </td>
 
                 <td>
-                    {{ optional($reservasi->armada)->jenis_kendaraan ?? '-' }}<br>
-                    <span class="small">
-                        Kapasitas: {{ optional($reservasi->armada)->kapasitas ?? '-' }}
-                    </span>
+                    {{ $reservasi->armada?->jenis_kendaraan ?? '-' }}
                 </td>
 
                 <td>
-                    {{ $reservasi->formatted_tanggal }}<br>
-                    {{ $reservasi->formatted_waktu }}<br>
+                    {{ $reservasi->tujuan ?? '-' }}
+                </td>
+
+                <td>
+
+                    {{ \Carbon\Carbon::parse($reservasi->tanggal_reservasi)->format('d/m/Y') }}
+
+                    <br>
+
                     <span class="small">
-                        {{ $reservasi->tujuan ?? '-' }}
+                        {{ $reservasi->formatted_waktu }}
                     </span>
+
+                </td>
+
+                <td>
+
+                    Rp
+                    {{ number_format($reservasi->pembayaran?->harga_final ?? 0,0,',','.') }}
+
+                </td>
+
+                <td>
+
+                    Rp
+                    {{ number_format($reservasi->pembayaran?->total_bayar ?? 0,0,',','.') }}
+
+                </td>
+
+                <td>
+
+                    Rp
+                    {{ number_format($reservasi->pembayaran?->sisa_pembayaran ?? 0,0,',','.') }}
+
                 </td>
 
                 <td class="text-center">
-                    {{ $reservasi->status_label }}
+                    {{ $reservasi->status_reservasi }}
                 </td>
 
             </tr>
-            @endforeach
-        </tbody>
-    </table>
 
-    {{-- FOOTER --}}
-    <div class="footer">
-        Dicetak oleh sistem pada {{ now()->format('d/m/Y H:i') }}
-    </div>
+        @empty
+
+            <tr>
+
+                <td colspan="8" class="text-center">
+                    Tidak ada data
+                </td>
+
+            </tr>
+
+        @endforelse
+
+    </tbody>
+
+</table>
+
+<div class="footer">
+
+    Dicetak oleh sistem pada
+    {{ now()->format('d/m/Y H:i') }}
 
 </div>
 

@@ -22,6 +22,9 @@
     {{-- FLATPICKR --}}
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.3.3/build/css/intlTelInput.css"/>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
@@ -346,7 +349,9 @@
                 >
             
                     <img
-                        src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->username) }}"
+                    src="{{ Auth::user()->profile_photo
+                    ? asset('storage/' . Auth::user()->profile_photo)
+                    : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->username) }}"
                         class="
                             w-12 h-12 rounded-full
                             object-cover
@@ -557,7 +562,9 @@
                         </div>
 
                         <img
-                            src="{{ auth()->user()->profile_photo ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->username) }}"
+                        src="{{ Auth::user()->profile_photo
+                        ? asset('storage/' . Auth::user()->profile_photo)
+                        : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->username) }}"
                             class="
                                 w-11 h-11 rounded-full
                                 object-cover

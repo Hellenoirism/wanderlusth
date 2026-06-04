@@ -32,8 +32,8 @@
                     <img
                         id="photoPreview"
                         src="{{ Auth::user()->profile_photo
-                            ? asset('storage/' . Auth::user()->profile_photo)
-                            : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->username) }}"
+                        ? asset('storage/' . Auth::user()->profile_photo)
+                        : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->username) }}"
                         class="
                             w-32 h-32 rounded-full
                             object-cover

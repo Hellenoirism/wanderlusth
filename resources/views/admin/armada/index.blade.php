@@ -15,7 +15,7 @@
 
         <a href="{{ route('admin.armada.create') }}"
            class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl shadow hover:bg-indigo-700 transition">
-            + Tambah Armada
+            <b>+ Tambah Armada</b>
         </a>
     </div>
 
