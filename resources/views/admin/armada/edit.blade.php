@@ -70,7 +70,9 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">
                         Harga Sewa
                     </label>
-                    <input type="number"
+                    <input type="text"
+                    data-currency
+                    data-target="harga_sewa"
                            name="harga_sewa"
                            value="{{ old('harga_sewa', $armada->harga_sewa) }}"
                            class="w-full rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">

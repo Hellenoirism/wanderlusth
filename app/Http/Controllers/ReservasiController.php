@@ -42,7 +42,23 @@ class ReservasiController extends Controller
             'waktu' => 'required',
             'tujuan' => 'required|string|max:255',
             'jumlah_penumpang' => 'required|integer|min:1',
-        ]);
+        ],
+        [
+            'armada_id.required' => 'Silahkan pilih armada',
+            'armada_id.exists' => ' Armada yang dipilih tidak ditemukan',
+            'nama.required'=> 'Nama pelanggan wajib diisi',
+            'nama.max' => 'Nama pelanggan maksimal 100 karakter',
+            'alamat.required' => 'Alamat wajib diisi',
+            'no_hp.required' => 'Nomor WhatsApp wajib diisi.',
+            'tanggal_reservasi.required' => 'Tanggal reservasi wajib diisi.',
+            'tanggal_reservasi.after_or_equal' => 'Tanggal reservasi tidak boleh sebelum hari ini.',
+            'waktu.required' => 'Jam keberangkatan wajib dipilih.',
+            'tujuan.required' => 'Tujuan perjalanan wajib diisi.',
+            'jumlah_penumpang.required' => 'Jumlah penumpang wajib diisi.',
+            'jumlah_penumpang.integer' => 'Jumlah penumpang harus berupa angka.',
+            'jumlah_penumpang.min' => 'Jumlah penumpang minimal 1 orang.',
+        ]
+        );
 
         // Ambil data armada
         $armada = Armada::where('id_armada', $request->armada_id)->firstOrFail();

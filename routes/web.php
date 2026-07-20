@@ -55,7 +55,7 @@ require __DIR__ . '/auth.php';
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'isAdmin'])
+    ->middleware(['auth','verified', 'isAdmin'])
     ->group(function () {
 
         /*

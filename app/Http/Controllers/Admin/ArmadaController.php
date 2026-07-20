@@ -27,7 +27,7 @@ class ArmadaController extends Controller
         $request->validate([
             'jenis_kendaraan' => 'required',
             'plat_nomor' => 'required|unique:armadas',
-            'kapasitas' => 'required|integer',
+            'kapasitas' => 'required|integer|max:45',
             'harga_sewa' => 'required|numeric',
             'fasilitas' => 'nullable|array'
         ]);
@@ -57,7 +57,7 @@ class ArmadaController extends Controller
         $request->validate([
             'jenis_kendaraan' => 'required',
             'plat_nomor' => 'required|unique:armadas,plat_nomor,' . $armada->id_armada . ',id_armada',
-            'kapasitas' => 'required|integer',
+            'kapasitas' => 'required|integer|max:45',
             'harga_sewa' => 'required|numeric',
             'fasilitas' => 'nullable|array'
         ]);

@@ -64,24 +64,65 @@ overflow-hidden grid grid-cols-1 lg:grid-cols-2">
                 </div>
 
                 <!-- PASSWORD -->
-                <div>
-                    <label class="block text-sm text-slate-300 mb-1.5">Password</label>
-                    <input type="password" name="password" required
-                        class="w-full px-4 py-2.5 bg-slate-900/60 border border-slate-700 rounded-lg text-white placeholder-slate-500 
-                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
-                        focus:shadow-md focus:shadow-indigo-500/20 transition duration-300"
-                        placeholder="••••••••">
-                </div>
+<div>
+    <label class="block text-sm text-slate-300 mb-1.5">Password</label>
 
-                <div class="flex justify-between items-center text-sm pt-1">
-                    <label class="flex items-center space-x-2 text-slate-400">
-                        <input type="checkbox" class="rounded bg-slate-800 border-slate-600 text-indigo-500 focus:ring-indigo-500">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="text-indigo-400 hover:text-indigo-300 transition">
-                        Forgot password?
-                    </a>
-                </div>
+    <div class="relative">
+        <input
+            id="password"
+            type="password"
+            name="password"
+            required
+            placeholder="••••••••"
+            class="w-full px-4 py-2.5 pr-12 bg-slate-900/60 border border-slate-700 rounded-lg text-white placeholder-slate-500
+            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+            focus:shadow-md focus:shadow-indigo-500/20 transition duration-300">
+
+        <button
+            type="button"
+            id="togglePassword"
+            class="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 hover:text-white transition">
+
+            <!-- Eye -->
+            <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5
+                    c4.478 0 8.268 2.943 9.542 7
+                    -1.274 4.057-5.064 7-9.542 7
+                    -4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+
+            <!-- Eye Slash -->
+            <svg id="eyeClosed"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 hidden"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19
+                    c-4.478 0-8.268-2.943-9.542-7
+                    a9.956 9.956 0 012.293-3.95M6.223 6.223
+                    A9.953 9.953 0 0112 5c4.478 0
+                    8.268 2.943 9.542 7a9.97 9.97 0
+                    01-4.132 5.411M3 3l18 18"/>
+            </svg>
+
+        </button>
+    </div>
+</div>
 
                 <!-- BUTTON -->
                 <button type="submit"
@@ -133,5 +174,20 @@ overflow-hidden grid grid-cols-1 lg:grid-cols-2">
 
 </div>
 
+<script>
+    const password = document.getElementById('password');
+    const toggle = document.getElementById('togglePassword');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    toggle.addEventListener('click', () => {
+        const isPassword = password.type === 'password';
+
+        password.type = isPassword ? 'text' : 'password';
+
+        eyeOpen.classList.toggle('hidden', isPassword);
+        eyeClosed.classList.toggle('hidden', !isPassword);
+    });
+</script>
 </body>
 </html>

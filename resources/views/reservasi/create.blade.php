@@ -9,6 +9,10 @@
 
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.3.3/build/css/intlTelInput.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 
 <body class="bg-slate-950 text-white antialiased">
@@ -17,15 +21,34 @@
 
     <div class="w-full max-w-5xl grid md:grid-cols-2 gap-8">
 
-        @if ($errors->any())
-    <div class="bg-red-500 text-white p-3 rounded mb-4">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>• {{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+        @if($errors->any())
+        <script>
+        
+        const errors = @json($errors->all());
+        
+        errors.forEach((error, index) => {
+        
+            setTimeout(() => {
+        
+                Toastify({
+                    text: error,
+                    duration: 5000,
+                    gravity: "top",
+                    position: "right",
+                    close: true,
+                    stopOnFocus: true,
+                    style: {
+                        background: "#dc2626",
+                        borderRadius: "12px"
+                    }
+                }).showToast();
+        
+            }, index * 350);
+        
+        });
+        
+        </script>
+        @endif
 
         {{-- LEFT: INFO ARMADA --}}
         <div class="bg-slate-900 p-8 rounded-2xl border border-white/10">
@@ -71,23 +94,24 @@
                 {{-- NAMA --}}
                 <div>
                     <label class="text-sm text-gray-400">Nama Lengkap</label>
-                    <input type="text" name="nama" required
+                    <input type="text" placeholder="Nama customer" name="nama" required
                         class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500">
                 </div>
 
                 <div>
                     <label class="text-sm text-gray-400">Alamat</label>
-                    <input type="text" name="alamat" required
+                    <input name="alamat" type="text" name="alamat" required
                         class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500">
                 </div>
 
                 {{-- PHONE --}}
                 <div>
                     <label class="text-sm text-gray-400">Nomor WhatsApp</label>
-                    <input type="tel" id="phone"
+                    <input name="nohp" type="tel" id="phone"
                         class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2">
                     <input type="hidden" name="no_hp" id="no_hp">
                 </div>
+
 
                 {{-- TANGGAL --}}
                 <div>
@@ -114,7 +138,7 @@
                 {{-- PENUMPANG --}}
                 <div>
                     <label class="text-sm text-gray-400">Jumlah Penumpang</label>
-                    <input type="number" name="jumlah_penumpang" required
+                    <input placeholder="Sesuaikan dengan kapasitas armada" type="number" name="jumlah_penumpang" required
                         class="w-full mt-1 bg-slate-800 border border-white/10 rounded-lg px-4 py-2">
                 </div>
 
@@ -136,6 +160,18 @@
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.3.3/build/js/intlTelInput.min.js"></script>
 
 <script>
+
+window.onload = () => {
+    const firstError = document.querySelector(".border-red-500");
+
+    if(firstError){
+        firstError.focus();
+        firstError.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+        });
+    }
+}
 const phoneInput = document.querySelector("#phone");
 const hiddenPhone = document.querySelector("#no_hp");
 
