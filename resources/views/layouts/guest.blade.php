@@ -12,7 +12,7 @@
         content="{{ csrf_token() }}">
 
     <title>
-        {{ config('app.name', 'Wanderlust Cantigi') }}
+        {{ config('app.name', 'Wanderlusth Cantigi') }}
     </title>
 
     {{-- FAVICON --}}

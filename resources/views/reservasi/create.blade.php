@@ -51,35 +51,78 @@ href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
         @endif
 
         {{-- LEFT: INFO ARMADA --}}
-        <div class="bg-slate-900 p-8 rounded-2xl border border-white/10">
+<div class="bg-slate-900 p-8 rounded-2xl border border-white/10">
 
-            <h2 class="text-2xl font-bold mb-4">Detail Armada</h2>
+    <h2 class="text-2xl font-bold mb-4">Detail Armada</h2>
 
-            <p class="text-lg font-semibold">
-                {{ $armada->jenis_kendaraan ?? 'Pilih Armada' }}
-            </p>
+    <p class="text-lg font-semibold">
+        {{ $armada->jenis_kendaraan ?? 'Pilih Armada' }}
+    </p>
 
-            <p class="text-gray-400 text-sm mb-2">
-                Kapasitas: {{ $armada->kapasitas ?? '-' }} Orang
-            </p>
+    <p class="text-gray-400 text-sm mb-2">
+        Kapasitas: {{ $armada->kapasitas ?? '-' }} Orang
+    </p>
 
-            <div class="flex flex-wrap gap-2 mb-4">
-                @foreach ($armada->fasilitas ?? [] as $f)
-                    <span class="text-xs bg-slate-800 px-2 py-1 rounded">
-                        {{ $f->nama_fasilitas }}
-                    </span>
-                @endforeach
-            </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+        @foreach ($armada->fasilitas ?? [] as $f)
+            <span class="text-xs bg-slate-800 px-2 py-1 rounded">
+                {{ $f->nama_fasilitas }}
+            </span>
+        @endforeach
+    </div>
 
-            <p class="text-red-500 text-xl font-bold">
-                Rp {{ number_format($armada->harga_sewa ?? 0,0,',','.') }}
-            </p>
+    <p class="text-red-500 text-3xl font-bold">
+        Rp {{ number_format($armada->harga_sewa ?? 0,0,',','.') }}
+    </p>
 
-            <p class="text-gray-500 text-sm mt-4">
-                * Harga dapat menyesuaikan dengan jarak & durasi perjalanan
-            </p>
+    <p class="text-gray-500 text-sm mt-3">
+        * Harga dapat menyesuaikan dengan jarak & durasi perjalanan.
+    </p>
 
+    {{-- SYARAT & KETENTUAN --}}
+    <div class="mt-8 rounded-xl border border-yellow-500/20 bg-slate-800/60 p-5">
+
+        <div class="flex items-center gap-2 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 text-yellow-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor">
+
+                <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+            </svg>
+
+            <h3 class="font-semibold text-yellow-300">
+                Syarat & Ketentuan
+            </h3>
         </div>
+
+        <ul class="space-y-3 text-sm text-gray-300 leading-6">
+
+            <li>• Serah terima mobil hanya dapat dilakukan jika penyewa telah menyerahkan kartu identitas diri yang masih berlaku serta menandatangani formulir Car Rental Contract.</li>
+
+            <li>• Waktu sewa dihitung semenjak kendaraan diberangkatkan dari kantor dan kembali lagi ke kantor Wanderlusth Cantigi.</li>
+
+            <li>• Diwajibkan para penyewa memilki Surat Izin Mengemudi (SIM) yang masih berlaku di Negara Republik Indonesia.</li>
+
+            <li>• Perubahan jadwal maupun pembatalan harus dikonfirmasi kepada pihak perusahaan.</li>
+
+            <li>• Ban bocor dan bahan bakar minyak (BBM) adalah tanggung jawab penyewa (posisi BBM kembali seperti semula saat pengembalian kendaraan).</li>
+
+            <li>• Kelebihan waktu (Overtime) akan dikenakan biaya sebesar 15% dari harga sewa perhari tiap jam.</li>
+
+            <li>• Keterlambatan lebih dari 5 jam dihitung 1 hari sewa.</li>
+
+            <li>• Kerusakan yang terjadi akibat kelalaian penyewa, sepenuhnya menjadi tanggung jawab penyewa. Kerusakan pada bus/mobil yang disewa dikenakan biaya klaim asuransi include sewa selain mobil tidak beroperasi akibat perbaikan-perbaikan yang masih dikerjakan di bengkel.</li>
+
+        </ul>
+
+    </div>
+
+</div>
 
         {{-- RIGHT: FORM --}}
         <div class="bg-slate-900 p-8 rounded-2xl border border-white/10">

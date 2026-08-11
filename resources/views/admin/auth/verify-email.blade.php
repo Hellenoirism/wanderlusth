@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Verify Email - Wanderlust Cantigi Tour</title>
+    <title>Verify Email - Wanderlusth Cantigi Tour</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     @vite(['resources/css/app.css','resources/js/app.js'])
@@ -55,7 +55,7 @@
                     </h2>
 
                     <p class="text-slate-400 mt-2 text-sm">
-                        Wanderlust Cantigi Tour Administration
+                        Wanderlusth Cantigi Tour Administration
                     </p>
 
                 </div>
@@ -145,7 +145,7 @@
             </div>
 
             <p class="text-xs text-slate-500 mt-8">
-                © 2026 PT. Wanderlust Cantigi International
+                © 2026 PT. Wanderlusth Cantigi International
             </p>
 
         </div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Wanderlust Cantigi Tour</title>
+    <title>Register - Wanderlusth Cantigi Tour</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @vite(['resources/css/app.css','resources/js/app.js'])
 </head>
@@ -175,7 +175,7 @@ overflow-hidden grid grid-cols-1 lg:grid-cols-2">
 
         <!-- FOOTER -->
         <p class="text-center lg:text-left text-slate-500 text-xs mt-6">
-            © 2026 PT. Wanderlust Cantigi International
+            © 2026 PT. Wanderlusth Cantigi International
         </p>
 
     </div>

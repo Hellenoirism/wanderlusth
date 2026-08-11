@@ -17,6 +17,7 @@ class Pembayaran extends Model
         'id_reservasi',
         'harga_awal',
         'harga_final',
+        'denda',
         'dp',
         'total_bayar',
         'sisa_pembayaran',
@@ -28,6 +29,7 @@ class Pembayaran extends Model
     protected $casts = [
         'harga_awal' => 'integer',
         'harga_final' => 'integer',
+        'denda' => 'integer',
         'dp' => 'integer',
         'total_bayar' => 'integer',
         'sisa_pembayaran' => 'integer',

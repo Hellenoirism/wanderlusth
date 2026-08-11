@@ -129,6 +129,38 @@ Route::prefix('admin')
         [PembayaranController::class, 'create']
     )->name('pembayaran.create');
 
+    /*
+        |--------------------------------------------------------------------------
+        | DENDA/OVERTIME
+        |--------------------------------------------------------------------------
+        */
+
+    /*
+        |--------------------------------------------------------------------------
+        | DENDA / OVERTIME
+        |--------------------------------------------------------------------------
+        */
+
+    Route::get(
+        '/pembayaran/{pembayaran}/denda/create',
+        [PembayaranController::class, 'createDenda']
+    )->name('pembayaran.denda.create');
+
+    Route::post(
+        '/pembayaran/{pembayaran}/denda',
+        [PembayaranController::class, 'storeDenda']
+    )->name('pembayaran.denda.store');
+
+    Route::get(
+        '/pembayaran/{pembayaran}/denda/edit',
+        [PembayaranController::class, 'editDenda']
+    )->name('pembayaran.denda.edit');
+
+    Route::put(
+        '/pembayaran/{pembayaran}/denda',
+        [PembayaranController::class, 'updateDenda']
+    )->name('pembayaran.denda.update');
+
         /*
         |--------------------------------------------------------------------------
         | LAPORAN

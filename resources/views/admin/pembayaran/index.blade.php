@@ -350,70 +350,134 @@
                                 </td>
 
                                 {{-- AKSI --}}
-                                <td class="px-6 py-5 text-center align-top">
+<td class="px-6 py-5 text-center align-top">
 
-                                    @if(!$pembayaran)
+    @if(!$pembayaran)
 
-                                        {{-- INPUT PEMBAYARAN --}}
-                                        <a
-                                            href="{{ route('admin.pembayaran.create', [
-                                                'reservasi' => $reservasi->id_reservasi
-                                            ]) }}"
-                                            class="
-                                                inline-flex items-center
-                                                rounded-xl
-                                                bg-emerald-600
-                                                px-4 py-2
-                                                text-xs font-semibold
-                                                text-white
-                                                transition
-                                                hover:bg-emerald-700
-                                            "
-                                        >
+        {{-- INPUT PEMBAYARAN --}}
+        <a
+            href="{{ route('admin.pembayaran.create', [
+                'reservasi' => $reservasi->id_reservasi
+            ]) }}"
+            class="
+                inline-flex items-center
+                rounded-xl
+                bg-emerald-600
+                px-4 py-2
+                text-xs font-semibold
+                text-white
+                transition
+                hover:bg-emerald-700
+            "
+        >
+            Input Pembayaran
+        </a>
 
-                                            Input Pembayaran
+    @elseif($pembayaran->status_pembayaran === 'DP')
 
-                                        </a>
+        {{-- EDIT PEMBAYARAN --}}
+        <a
+            href="{{ route('admin.pembayaran.edit', $pembayaran->id_pembayaran) }}"
+            class="
+                inline-flex items-center
+                rounded-xl
+                bg-amber-500
+                px-4 py-2
+                text-xs font-semibold
+                text-white
+                transition
+                hover:bg-amber-600
+            "
+        >
+            Edit Pembayaran
+        </a>
 
-                                    @elseif($pembayaran->status_pembayaran === 'DP')
+    @else
 
-                                        {{-- EDIT PEMBAYARAN --}}
-                                        <a
-                                            href="{{ route('admin.pembayaran.edit', $pembayaran->id_pembayaran) }}"
-                                            class="
-                                                inline-flex items-center
-                                                rounded-xl
-                                                bg-amber-500
-                                                px-4 py-2
-                                                text-xs font-semibold
-                                                text-white
-                                                transition
-                                                hover:bg-amber-600
-                                            "
-                                        >
+        {{-- SUDAH LUNAS --}}
+        <div class="flex flex-col items-center gap-2">
 
-                                            Edit Pembayaran
+            <span class="
+                inline-flex items-center
+                rounded-xl
+                bg-emerald-100
+                px-4 py-2
+                text-xs font-semibold
+                text-emerald-700
+            ">
+                Pembayaran Lunas
+            </span>
 
-                                        </a>
+            {{-- CEK DENDA --}}
+            @if(($pembayaran->denda ?? 0) > 0)
 
-                                    @else
+                {{-- DENDA SUDAH ADA --}}
+                <div class="flex flex-col items-center gap-2">
 
-                                        {{-- SUDAH LUNAS --}}
-                                        <span class="
-                                            inline-flex items-center
-                                            rounded-xl
-                                            bg-emerald-100
-                                            px-4 py-2
-                                            text-xs font-semibold
-                                            text-emerald-700
-                                        ">
+                    <span class="
+                        inline-flex items-center
+                        rounded-xl
+                        bg-red-100
+                        px-4 py-2
+                        text-xs font-semibold
+                        text-red-700
+                    ">
+                        Denda:
+                        Rp {{ number_format($pembayaran->denda, 0, ',', '.') }}
+                    </span>
 
-                                            Pembayaran Selesai
+                    <a
+                        href="{{ route(
+                            'admin.pembayaran.denda.edit',
+                            $pembayaran->id_pembayaran
+                        ) }}"
+                        class="
+                            inline-flex items-center
+                            rounded-xl
+                            bg-amber-500
+                            px-4 py-2
+                            text-xs font-semibold
+                            text-white
+                            transition
+                            hover:bg-amber-600
+                        "
+                    >
+                        Edit Denda
+                    </a>
 
-                                        </span>
+                </div>
 
-                                    @endif
+            @else
 
+                {{-- BELUM ADA DENDA --}}
+                <a
+                    href="{{ route(
+                        'admin.pembayaran.denda.create',
+                        $pembayaran->id_pembayaran
+                    ) }}"
+                    class="
+                        inline-flex items-center
+                        rounded-xl
+                        bg-red-600
+                        px-4 py-2
+                        text-xs font-semibold
+                        text-white
+                        transition
+                        hover:bg-red-700
+                    "
+                >
+                    Input Denda
+                </a>
+
+            @endif
+
+        </div>
+
+    @endif
+
+</td>
+
+                                    
                                 </td>
 
                             </tr>

@@ -221,6 +221,133 @@ class PembayaranController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | DENDA
+    |--------------------------------------------------------------------------
+    */
+
+    public function createDenda(Pembayaran $pembayaran)
+    {
+        // Denda hanya boleh diberikan jika pembayaran sudah lunas
+        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+            return redirect()
+                ->route('admin.pembayaran.index')
+                ->with(
+                    'error',
+                    'Denda hanya dapat diberikan pada pembayaran yang sudah lunas.'
+                );
+        }
+
+        $pembayaran->load([
+            'reservasi.pelanggan',
+            'reservasi.armada',
+        ]);
+
+        return view(
+            'admin.pembayaran.denda.create',
+            compact('pembayaran')
+        );
+    }
+
+
+    /**
+     * Simpan denda
+     */
+    public function storeDenda(
+        Request $request,
+        Pembayaran $pembayaran
+    ) {
+        // Pastikan hanya pembayaran Lunas
+        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+            abort(403, 'Denda hanya dapat diberikan pada pembayaran yang sudah lunas.');
+        }
+
+        // Validasi nominal denda
+        $validated = $request->validate([
+            'denda' => [
+                'required',
+                'numeric',
+                'min:1',
+            ],
+        ], [
+            'denda.required' => 'Nominal denda wajib diisi.',
+            'denda.numeric' => 'Nominal denda harus berupa angka.',
+            'denda.min' => 'Nominal denda harus lebih dari Rp 0.',
+        ]);
+
+        // Simpan denda
+        $pembayaran->update([
+            'denda' => $validated['denda'],
+        ]);
+
+        return redirect()
+            ->route('admin.pembayaran.index')
+            ->with('success', 'Denda berhasil ditambahkan.');
+    }
+
+
+    /**
+     * Form edit denda
+     */
+    public function editDenda(Pembayaran $pembayaran)
+    {
+        // Denda hanya boleh diedit jika pembayaran sudah lunas
+        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+            return redirect()
+                ->route('admin.pembayaran.index')
+                ->with(
+                    'error',
+                    'Denda hanya dapat diubah pada pembayaran yang sudah lunas.'
+                );
+        }
+
+        $pembayaran->load([
+            'reservasi.pelanggan',
+            'reservasi.armada',
+        ]);
+
+        return view(
+            'admin.pembayaran.denda.edit',
+            compact('pembayaran')
+        );
+    }
+
+
+    /**
+     * Update denda
+     */
+    public function updateDenda(
+        Request $request,
+        Pembayaran $pembayaran
+    ) {
+        // Pastikan pembayaran masih Lunas
+        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+            abort(403, 'Denda hanya dapat diperbarui pada pembayaran yang sudah lunas.');
+        }
+
+        // Validasi nominal baru
+        $validated = $request->validate([
+            'denda' => [
+                'required',
+                'numeric',
+                'min:1',
+            ],
+        ], [
+            'denda.required' => 'Nominal denda wajib diisi.',
+            'denda.numeric' => 'Nominal denda harus berupa angka.',
+            'denda.min' => 'Nominal denda harus lebih dari Rp 0.',
+        ]);
+
+        // Update denda
+        $pembayaran->update([
+            'denda' => $validated['denda'],
+        ]);
+
+        return redirect()
+            ->route('admin.pembayaran.index')
+            ->with('success', 'Denda berhasil diperbarui.');
+    }
+    /*
+    |--------------------------------------------------------------------------
     | UPDATE
     |--------------------------------------------------------------------------
     */

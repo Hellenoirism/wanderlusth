@@ -15,7 +15,7 @@
     ])
 </head>
 
-<body class="scroll-smooth bg-slate-950 text-white">
+<body class="bg-[#070b14] text-white antialiased">
 
 {{-- NAVBAR --}}
 <header class="fixed top-0 z-50 w-full bg-slate-900/80 backdrop-blur">
@@ -23,7 +23,7 @@
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 
         <h1 class="text-xl font-bold text-red-500">
-            Wanderlusth
+            Wanderlusth Cantigi
         </h1>
 
         <a

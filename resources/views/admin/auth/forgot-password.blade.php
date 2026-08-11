@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Lupa Password - Wanderlust Cantigi Tour</title>
+    <title>Lupa Password - Wanderlusth Cantigi Tour</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     @vite(['resources/css/app.css','resources/js/app.js'])
@@ -145,7 +145,7 @@
             </div>
 
             <p class="text-center lg:text-left text-slate-500 text-xs mt-6">
-                © 2026 PT. Wanderlust Cantigi International
+                © 2026 PT. Wanderlusth Cantigi International
             </p>
 
         </div>
