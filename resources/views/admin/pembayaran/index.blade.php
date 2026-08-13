@@ -244,7 +244,7 @@
                                             <div>
 
                                                 <p class="text-xs text-slate-500">
-                                                    Total Dibayar
+                                                    Total Transaksi
                                                 </p>
 
                                                 <p class="mt-1 font-semibold text-emerald-600">

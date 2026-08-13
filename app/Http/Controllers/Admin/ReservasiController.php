@@ -94,6 +94,28 @@ class ReservasiController extends Controller
             'jumlah_penumpang'    => 'required|integer|min:1',
         ]);
 
+        // Ambil data armada untuk validasi kapasitas
+        $armada = Armada::findOrFail($validated['id_armada']);
+
+        // Validasi kapasitas penumpang
+        if ($validated['jumlah_penumpang'] > $armada->kapasitas) {
+            return back()->withErrors([
+                'jumlah_penumpang' => 'Jumlah penumpang melebihi kapasitas armada (Kapasitas: ' . $armada->kapasitas . ')'
+            ])->withInput();
+        }
+
+        // Validasi double-booking
+        $isBooked = Reservasi::where('id_armada', $validated['id_armada'])
+            ->where('tanggal_reservasi', $validated['tanggal_reservasi'])
+            ->where('waktu', $validated['waktu'])
+            ->exists();
+
+        if ($isBooked) {
+            return back()->withErrors([
+                'tanggal_reservasi' => 'Armada sudah dibooking pada waktu tersebut'
+            ])->withInput();
+        }
+
         DB::transaction(function () use ($validated) {
 
             $pelanggan = Pelanggan::create([
@@ -148,6 +170,34 @@ class ReservasiController extends Controller
             return back()->with(
                 'error',
                 'Status reservasi sudah final.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI STATUS TRANSITION
+        |--------------------------------------------------------------------------
+        */
+
+        $newStatus = $validated['status_reservasi'];
+        $currentStatus = $reservasi->status_reservasi;
+        
+        // Validasi transisi status yang diizinkan
+        $validTransitions = [
+            Reservasi::STATUS_PENDING => [
+                Reservasi::STATUS_PROCESS,
+                Reservasi::STATUS_CANCELLED,
+            ],
+            Reservasi::STATUS_PROCESS => [
+                Reservasi::STATUS_CONFIRMED,
+                Reservasi::STATUS_CANCELLED,
+            ],
+        ];
+
+        if (!isset($validTransitions[$currentStatus]) || !in_array($newStatus, $validTransitions[$currentStatus])) {
+            return back()->with(
+                'error',
+                'Transisi status tidak diizinkan dari ' . $currentStatus . ' ke ' . $newStatus
             );
         }
 

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Reservasi;
 use App\Models\Pembayaran;
+use App\Models\Reservasi;
 use Illuminate\Support\Facades\DB;
 
 class LaporanService
@@ -23,7 +23,7 @@ class LaporanService
             ->with([
                 'pelanggan',
                 'armada',
-                'pembayaran'
+                'pembayaran',
             ])
             ->whereMonth(
                 'tanggal_reservasi',
@@ -34,6 +34,7 @@ class LaporanService
                 $tahun
             );
 
+
         /*
         |--------------------------------------------------------------------------
         | PEMBAYARAN
@@ -41,14 +42,21 @@ class LaporanService
         */
 
         $pembayaranQuery = Pembayaran::query()
-            ->whereMonth(
-                'tanggal_pembayaran',
-                $bulan
-            )
-            ->whereYear(
-                'tanggal_pembayaran',
+            ->whereHas('reservasi', function ($query) use (
+                $bulan,
                 $tahun
-            );
+            ) {
+                $query
+                    ->whereMonth(
+                        'tanggal_reservasi',
+                        $bulan
+                    )
+                    ->whereYear(
+                        'tanggal_reservasi',
+                        $tahun
+                    );
+            });
+
 
         /*
         |--------------------------------------------------------------------------
@@ -59,29 +67,52 @@ class LaporanService
         $totalReservasi =
             (clone $reservasiQuery)->count();
 
-        $totalPemasukan =
-            (clone $pembayaranQuery)
-            ->sum('total_bayar');
+
+        /*
+        | Total nilai transaksi:
+        |
+        | Untuk status DP: hanya hitung DP
+        | Untuk status Lunas/Belum Bayar: hitung total_bayar (harga_final + denda)
+        */
+
+        $allPembayaran = (clone $pembayaranQuery)->get();
+        
+        $totalPemasukan = $allPembayaran->sum(function ($pembayaran) {
+            if ($pembayaran->status_pembayaran === Pembayaran::STATUS_DP) {
+                return $pembayaran->dp ?? 0;
+            }
+            return $pembayaran->total_bayar ?? 0;
+        });
+
 
         $totalLunas =
             (clone $pembayaranQuery)
             ->where(
                 'status_pembayaran',
-                'Lunas'
+                Pembayaran::STATUS_LUNAS
             )
             ->count();
+
 
         $totalDP =
             (clone $pembayaranQuery)
             ->where(
                 'status_pembayaran',
-                'DP'
+                Pembayaran::STATUS_DP
             )
             ->count();
 
-        $totalPiutang =
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL DENDA
+        |--------------------------------------------------------------------------
+        */
+
+        $totalDenda =
             (clone $pembayaranQuery)
-            ->sum('sisa_pembayaran');
+            ->sum('denda');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -95,13 +126,12 @@ class LaporanService
                 'status_reservasi',
                 DB::raw('COUNT(*) as total')
             )
-            ->groupBy(
-                'status_reservasi'
-            )
+            ->groupBy('status_reservasi')
             ->pluck(
                 'total',
                 'status_reservasi'
             );
+
 
         /*
         |--------------------------------------------------------------------------
@@ -120,6 +150,7 @@ class LaporanService
             ->orderByDesc('total')
             ->first();
 
+
         /*
         |--------------------------------------------------------------------------
         | DETAIL RESERVASI
@@ -128,10 +159,9 @@ class LaporanService
 
         $reservasis =
             (clone $reservasiQuery)
-            ->latest(
-                'tanggal_reservasi'
-            )
+            ->latest('tanggal_reservasi')
             ->get();
+
 
         return [
 
@@ -147,8 +177,8 @@ class LaporanService
             'totalDP'
             => $totalDP,
 
-            'totalPiutang'
-            => $totalPiutang,
+            'totalDenda'
+            => $totalDenda,
 
             'statusSummary'
             => $statusSummary,

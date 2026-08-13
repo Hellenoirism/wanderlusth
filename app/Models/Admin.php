@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use illuminate\Foundation\Auth\User as Authenticable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Admin extends Authenticable
+class Admin extends Authenticatable
 {
     protected $table = 'users';
     protected $primaryKey = 'id_admin';

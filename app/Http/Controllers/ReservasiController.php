@@ -6,6 +6,7 @@ use App\Models\Armada;
 use App\Models\Pelanggan;
 use App\Models\Reservasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservasiController extends Controller
 {
@@ -38,7 +39,7 @@ class ReservasiController extends Controller
             'alamat' => 'required|string|max:255',
             'no_hp' => 'required|string|max:20',
 
-            'tanggal_reservasi' => 'required|date|after_or_equal:today',
+            'tanggal_reservasi' => 'required|date|after_or_equal:today|before_or_equal:' . now()->addDays(90)->format('Y-m-d'),
             'waktu' => 'required',
             'tujuan' => 'required|string|max:255',
             'jumlah_penumpang' => 'required|integer|min:1',
@@ -52,6 +53,7 @@ class ReservasiController extends Controller
             'no_hp.required' => 'Nomor WhatsApp wajib diisi.',
             'tanggal_reservasi.required' => 'Tanggal reservasi wajib diisi.',
             'tanggal_reservasi.after_or_equal' => 'Tanggal reservasi tidak boleh sebelum hari ini.',
+            'tanggal_reservasi.before_or_equal' => 'Tanggal reservasi maksimal 90 hari ke depan.',
             'waktu.required' => 'Jam keberangkatan wajib dipilih.',
             'tujuan.required' => 'Tujuan perjalanan wajib diisi.',
             'jumlah_penumpang.required' => 'Jumlah penumpang wajib diisi.',
@@ -82,23 +84,28 @@ class ReservasiController extends Controller
             ])->withInput();
         }
 
-        // Simpan pelanggan
-        $pelanggan = Pelanggan::create([
-            'nama' => $request->nama,
-            'alamat' => $request->alamat,
-            'no_hp' => $request->no_hp,
-        ]);
+        // Simpan dalam transaction untuk mencegah race condition
+        $reservasi = DB::transaction(function () use ($request, $armada, $validated) {
+            // Gunakan firstOrCreate untuk menghindari duplikasi pelanggan
+            $pelanggan = Pelanggan::firstOrCreate(
+                ['no_hp' => $validated['no_hp']],
+                [
+                    'nama' => $validated['nama'],
+                    'alamat' => $validated['alamat'],
+                ]
+            );
 
-        // Simpan Reservasi
-        $reservasi = Reservasi::create([
-            'id_pelanggan' => $pelanggan->id_pelanggan,
-            'id_armada' => $armada->id_armada,
-            'waktu' => $request->waktu,
-            'tujuan' => $request->tujuan,
-            'jumlah_penumpang' => $request->jumlah_penumpang,
-            'status_reservasi' => 'Pending',
-            'tanggal_reservasi' => $request->tanggal_reservasi,
-        ]);
+            // Simpan Reservasi
+            return Reservasi::create([
+                'id_pelanggan' => $pelanggan->id_pelanggan,
+                'id_armada' => $armada->id_armada,
+                'waktu' => $request->waktu,
+                'tujuan' => $request->tujuan,
+                'jumlah_penumpang' => $request->jumlah_penumpang,
+                'status_reservasi' => 'Pending',
+                'tanggal_reservasi' => $request->tanggal_reservasi,
+            ]);
+        });
 
         return redirect()->route('reservasi.success', $reservasi->id_reservasi);
     }

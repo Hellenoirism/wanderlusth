@@ -115,9 +115,6 @@ href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
             <li>• Kelebihan waktu (Overtime) akan dikenakan biaya sebesar 15% dari harga sewa perhari tiap jam.</li>
 
             <li>• Keterlambatan lebih dari 5 jam dihitung 1 hari sewa.</li>
-
-            <li>• Kerusakan yang terjadi akibat kelalaian penyewa, sepenuhnya menjadi tanggung jawab penyewa. Kerusakan pada bus/mobil yang disewa dikenakan biaya klaim asuransi include sewa selain mobil tidak beroperasi akibat perbaikan-perbaikan yang masih dikerjakan di bengkel.</li>
-
         </ul>
 
     </div>

@@ -39,6 +39,7 @@ class PembayaranController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
     | CREATE
@@ -54,21 +55,24 @@ class PembayaranController extends Controller
         ]);
 
         if ($reservasi->isCancelled()) {
-
             return redirect()
                 ->route('admin.pembayaran.index')
                 ->with('error', 'Reservasi dibatalkan.');
         }
 
         if ($reservasi->pembayaran) {
-
             return redirect()
-                ->route('admin.pembayaran.edit', $reservasi->pembayaran)
-                ->with('error', 'Reservasi sudah memiliki pembayaran.');
+                ->route(
+                    'admin.pembayaran.edit',
+                    $reservasi->pembayaran
+                )
+                ->with(
+                    'error',
+                    'Reservasi sudah memiliki pembayaran.'
+                );
         }
 
-        $defaultHargaAwal =
-            $reservasi->armada?->harga_sewa;
+        $defaultHargaAwal = $reservasi->armada?->harga_sewa;
 
         return view(
             'admin.pembayaran.create',
@@ -79,9 +83,10 @@ class PembayaranController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | STORE
+    | STORE PEMBAYARAN
     |--------------------------------------------------------------------------
     */
 
@@ -130,75 +135,190 @@ class PembayaranController extends Controller
         if ($reservasi->isCancelled()) {
             return back()
                 ->withInput()
-                ->with('error', 'Reservasi dibatalkan.');
+                ->with(
+                    'error',
+                    'Reservasi dibatalkan.'
+                );
         }
 
         if ($reservasi->pembayaran) {
             return back()
                 ->withInput()
-                ->with('error', 'Reservasi sudah memiliki pembayaran.');
+                ->with(
+                    'error',
+                    'Reservasi sudah memiliki pembayaran.'
+                );
         }
 
-        DB::transaction(function () use ($validated, $reservasi) {
+        DB::transaction(function () use (
+            $validated,
+            $reservasi
+        ) {
 
+            $hargaAwal = (float) $validated['harga_awal'];
             $hargaFinal = (float) $validated['harga_final'];
 
-            $isLunas =
-                $validated['jenis_pembayaran'] === 'Lunas';
+            /*
+            |--------------------------------------------------------------------------
+            | HARGA FINAL
+            |--------------------------------------------------------------------------
+            |
+            | Harga final boleh lebih kecil dari harga awal
+            | karena adanya diskon.
+            |
+            */
 
-            $dp = $isLunas
-                ? $hargaFinal
-                : (float) ($validated['dp'] ?? 0);
-
-            if (!$isLunas) {
-
-                if ($dp <= 0) {
-                    throw ValidationException::withMessages([
-                        'dp' => 'Nominal DP harus lebih dari 0.',
-                    ]);
-                }
-
-                if ($dp >= $hargaFinal) {
-                    throw ValidationException::withMessages([
-                        'dp' => 'Nominal DP harus lebih kecil dari harga final.',
-                    ]);
-                }
+            if ($hargaFinal < 0) {
+                throw ValidationException::withMessages([
+                    'harga_final' =>
+                    'Harga final tidak boleh kurang dari Rp 0.',
+                ]);
             }
 
-            $totalBayar = $dp;
+            /*
+            |--------------------------------------------------------------------------
+            | TENTUKAN DP
+            |--------------------------------------------------------------------------
+            */
 
-            $sisaPembayaran =
-                $hargaFinal - $totalBayar;
+            if ($validated['jenis_pembayaran'] === 'Lunas') {
+                $dp = $hargaFinal;
+            } else {
+                $dp = (float) ($validated['dp'] ?? 0);
+            }
 
-            $statusPembayaran =
-                $sisaPembayaran <= 0
-                ? Pembayaran::STATUS_LUNAS
-                : Pembayaran::STATUS_DP;
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDASI DP
+            |--------------------------------------------------------------------------
+            */
+
+            if ($dp < 0) {
+                throw ValidationException::withMessages([
+                    'dp' =>
+                    'Nominal pembayaran tidak boleh kurang dari Rp 0.',
+                ]);
+            }
+
+            if ($dp > $hargaFinal) {
+                throw ValidationException::withMessages([
+                    'dp' =>
+                    'Nominal pembayaran tidak boleh melebihi harga final.',
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $statusPembayaran = $this->determinePaymentStatus(
+                $dp,
+                $hargaFinal
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | DENDA
+            |--------------------------------------------------------------------------
+            |
+            | Pada saat pembayaran dibuat belum ada denda.
+            |
+            */
+
+            $denda = 0;
+
+            /*
+            |--------------------------------------------------------------------------
+            | SISA PEMBAYARAN
+            |--------------------------------------------------------------------------
+            |
+            | Rumus:
+            |
+            | sisa_pembayaran = harga_final - dp
+            |
+            */
+
+            $sisaPembayaran = max(
+                $hargaFinal - $dp,
+                0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL BAYAR
+            |--------------------------------------------------------------------------
+            |
+            | Rumus:
+            |
+            | total_bayar = harga_final + denda
+            |
+            */
+
+            $totalBayar =
+                $hargaFinal + $denda;
+
+            /*
+            |--------------------------------------------------------------------------
+            | SIMPAN PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
 
             Pembayaran::create([
-                'id_reservasi'       => $reservasi->id_reservasi,
-                'harga_awal'         => $validated['harga_awal'],
-                'harga_final'        => $hargaFinal,
-                'dp'                 => $dp,
-                'total_bayar'        => $totalBayar,
-                'sisa_pembayaran'    => $sisaPembayaran,
-                'status_pembayaran'  => $statusPembayaran,
-                'metode_pembayaran'  => $validated['metode_pembayaran'],
-                'tanggal_pembayaran' => now(),
+                'id_reservasi' =>
+                $reservasi->id_reservasi,
+
+                'harga_awal' =>
+                $hargaAwal,
+
+                'harga_final' =>
+                $hargaFinal,
+
+                'dp' =>
+                $dp,
+
+                'sisa_pembayaran' =>
+                $sisaPembayaran,
+
+                'denda' =>
+                $denda,
+
+                'total_bayar' =>
+                $totalBayar,
+
+                'status_pembayaran' =>
+                $statusPembayaran,
+
+                'metode_pembayaran' =>
+                $validated['metode_pembayaran'],
+
+                'tanggal_pembayaran' =>
+                now(),
             ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS RESERVASI
+            |--------------------------------------------------------------------------
+            */
 
             $reservasi->update([
                 'status_reservasi' =>
-                $statusPembayaran === Pembayaran::STATUS_LUNAS
-                    ? Reservasi::STATUS_CONFIRMED
-                    : Reservasi::STATUS_PROCESS,
+                $this->determineReservationStatus(
+                    $statusPembayaran
+                ),
             ]);
         });
 
         return redirect()
             ->route('admin.pembayaran.index')
-            ->with('success', 'Pembayaran berhasil ditambahkan.');
+            ->with(
+                'success',
+                'Pembayaran berhasil ditambahkan.'
+            );
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -219,16 +339,174 @@ class PembayaranController extends Controller
         );
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | DENDA
+    | UPDATE PEMBAYARAN
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(
+        Request $request,
+        Pembayaran $pembayaran
+    ) {
+        $validated = $request->validate([
+            'dp' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'metode_pembayaran' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+        ], [
+            'dp.required' =>
+            'Nominal pembayaran wajib diisi.',
+
+            'dp.numeric' =>
+            'Nominal pembayaran harus berupa angka.',
+
+            'dp.min' =>
+            'Nominal pembayaran tidak boleh kurang dari Rp 0.',
+
+            'metode_pembayaran.required' =>
+            'Metode pembayaran wajib dipilih.',
+        ]);
+
+        DB::transaction(function () use (
+            $validated,
+            $pembayaran
+        ) {
+
+            $hargaFinal =
+                (float) $pembayaran->harga_final;
+
+            $dpBaru =
+                (float) $validated['dp'];
+
+            $denda =
+                (float) ($pembayaran->denda ?? 0);
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDASI DP
+            |--------------------------------------------------------------------------
+            */
+
+            if ($dpBaru > $hargaFinal) {
+                throw ValidationException::withMessages([
+                    'dp' =>
+                    'Nominal pembayaran tidak boleh melebihi harga final sebesar Rp ' .
+                        number_format(
+                            $hargaFinal,
+                            0,
+                            ',',
+                            '.'
+                        ) . '.',
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $statusPembayaran = $this->determinePaymentStatus(
+                $dpBaru,
+                $hargaFinal
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | SISA PEMBAYARAN
+            |--------------------------------------------------------------------------
+            |
+            | harga_final - dp
+            |
+            */
+
+            $sisaPembayaran = max(
+                $hargaFinal - $dpBaru,
+                0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL BAYAR
+            |--------------------------------------------------------------------------
+            |
+            | harga_final + denda
+            |
+            */
+
+            $totalBayar =
+                $hargaFinal + $denda;
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $pembayaran->update([
+                'dp' =>
+                $dpBaru,
+
+                'sisa_pembayaran' =>
+                $sisaPembayaran,
+
+                'denda' =>
+                $denda,
+
+                'total_bayar' =>
+                $totalBayar,
+
+                'metode_pembayaran' =>
+                $validated['metode_pembayaran'],
+
+                'status_pembayaran' =>
+                $statusPembayaran,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS RESERVASI
+            |--------------------------------------------------------------------------
+            */
+
+            $pembayaran->reservasi->update([
+                'status_reservasi' =>
+                $this->determineReservationStatus(
+                    $statusPembayaran
+                ),
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.pembayaran.index')
+            ->with(
+                'success',
+                'Pembayaran berhasil diperbarui.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DENDA - CREATE
     |--------------------------------------------------------------------------
     */
 
     public function createDenda(Pembayaran $pembayaran)
     {
-        // Denda hanya boleh diberikan jika pembayaran sudah lunas
-        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+        if (
+            $pembayaran->status_pembayaran
+            !== Pembayaran::STATUS_LUNAS
+        ) {
             return redirect()
                 ->route('admin.pembayaran.index')
                 ->with(
@@ -249,19 +527,26 @@ class PembayaranController extends Controller
     }
 
 
-    /**
-     * Simpan denda
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | DENDA - STORE
+    |--------------------------------------------------------------------------
+    */
+
     public function storeDenda(
         Request $request,
         Pembayaran $pembayaran
     ) {
-        // Pastikan hanya pembayaran Lunas
-        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
-            abort(403, 'Denda hanya dapat diberikan pada pembayaran yang sudah lunas.');
+        if (
+            $pembayaran->status_pembayaran
+            !== Pembayaran::STATUS_LUNAS
+        ) {
+            abort(
+                403,
+                'Denda hanya dapat diberikan pada pembayaran yang sudah lunas.'
+            );
         }
 
-        // Validasi nominal denda
         $validated = $request->validate([
             'denda' => [
                 'required',
@@ -269,29 +554,95 @@ class PembayaranController extends Controller
                 'min:1',
             ],
         ], [
-            'denda.required' => 'Nominal denda wajib diisi.',
-            'denda.numeric' => 'Nominal denda harus berupa angka.',
-            'denda.min' => 'Nominal denda harus lebih dari Rp 0.',
+            'denda.required' =>
+            'Nominal denda wajib diisi.',
+
+            'denda.numeric' =>
+            'Nominal denda harus berupa angka.',
+
+            'denda.min' =>
+            'Nominal denda harus lebih dari Rp 0.',
         ]);
 
-        // Simpan denda
-        $pembayaran->update([
-            'denda' => $validated['denda'],
-        ]);
+        DB::transaction(function () use (
+            $validated,
+            $pembayaran
+        ) {
+
+            $hargaFinal =
+                (float) $pembayaran->harga_final;
+
+            $dp =
+                (float) $pembayaran->dp;
+
+            $denda =
+                (float) $validated['denda'];
+
+            /*
+            |--------------------------------------------------------------------------
+            | SISA PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $sisaPembayaran = max(
+                $hargaFinal - $dp,
+                0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL BAYAR
+            |--------------------------------------------------------------------------
+            |
+            | harga_final + denda
+            |
+            */
+
+            $totalBayar =
+                $hargaFinal + $denda;
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $pembayaran->update([
+                'sisa_pembayaran' =>
+                $sisaPembayaran,
+
+                'denda' =>
+                $denda,
+
+                'total_bayar' =>
+                $totalBayar,
+
+                'status_pembayaran' =>
+                Pembayaran::STATUS_LUNAS,
+            ]);
+        });
 
         return redirect()
             ->route('admin.pembayaran.index')
-            ->with('success', 'Denda berhasil ditambahkan.');
+            ->with(
+                'success',
+                'Denda berhasil ditambahkan dan total pembayaran diperbarui.'
+            );
     }
 
 
-    /**
-     * Form edit denda
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | DENDA - EDIT
+    |--------------------------------------------------------------------------
+    */
+
     public function editDenda(Pembayaran $pembayaran)
     {
-        // Denda hanya boleh diedit jika pembayaran sudah lunas
-        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
+        if (
+            $pembayaran->status_pembayaran
+            !== Pembayaran::STATUS_LUNAS
+        ) {
             return redirect()
                 ->route('admin.pembayaran.index')
                 ->with(
@@ -312,19 +663,26 @@ class PembayaranController extends Controller
     }
 
 
-    /**
-     * Update denda
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | DENDA - UPDATE
+    |--------------------------------------------------------------------------
+    */
+
     public function updateDenda(
         Request $request,
         Pembayaran $pembayaran
     ) {
-        // Pastikan pembayaran masih Lunas
-        if ($pembayaran->status_pembayaran !== Pembayaran::STATUS_LUNAS) {
-            abort(403, 'Denda hanya dapat diperbarui pada pembayaran yang sudah lunas.');
+        if (
+            $pembayaran->status_pembayaran
+            !== Pembayaran::STATUS_LUNAS
+        ) {
+            abort(
+                403,
+                'Denda hanya dapat diperbarui pada pembayaran yang sudah lunas.'
+            );
         }
 
-        // Validasi nominal baru
         $validated = $request->validate([
             'denda' => [
                 'required',
@@ -332,82 +690,158 @@ class PembayaranController extends Controller
                 'min:1',
             ],
         ], [
-            'denda.required' => 'Nominal denda wajib diisi.',
-            'denda.numeric' => 'Nominal denda harus berupa angka.',
-            'denda.min' => 'Nominal denda harus lebih dari Rp 0.',
+            'denda.required' =>
+            'Nominal denda wajib diisi.',
+
+            'denda.numeric' =>
+            'Nominal denda harus berupa angka.',
+
+            'denda.min' =>
+            'Nominal denda harus lebih dari Rp 0.',
         ]);
 
-        // Update denda
-        $pembayaran->update([
-            'denda' => $validated['denda'],
-        ]);
-
-        return redirect()
-            ->route('admin.pembayaran.index')
-            ->with('success', 'Denda berhasil diperbarui.');
-    }
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE
-    |--------------------------------------------------------------------------
-    */
-
-    public function update(Request $request, Pembayaran $pembayaran)
-    {
-        $validated = $request->validate([
-            'total_bayar' => [
-                'required',
-                'numeric',
-                'min:0',
-            ],
-
-            'metode_pembayaran' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-        ]);
-
-        DB::transaction(function () use ($validated, $pembayaran) {
+        DB::transaction(function () use (
+            $validated,
+            $pembayaran
+        ) {
 
             $hargaFinal =
                 (float) $pembayaran->harga_final;
 
+            $dp =
+                (float) $pembayaran->dp;
+
+            $denda =
+                (float) $validated['denda'];
+
+            /*
+            |--------------------------------------------------------------------------
+            | SISA PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
+
+            $sisaPembayaran = max(
+                $hargaFinal - $dp,
+                0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL BAYAR
+            |--------------------------------------------------------------------------
+            */
+
             $totalBayar =
-                (float) $validated['total_bayar'];
+                $hargaFinal + $denda;
 
-            if ($totalBayar > $hargaFinal) {
-                throw ValidationException::withMessages([
-                    'total_bayar' =>
-                    'Total pembayaran tidak boleh melebihi harga final.',
-                ]);
-            }
-
-            $sisaPembayaran =
-                $hargaFinal - $totalBayar;
-
-            $statusPembayaran =
-                $sisaPembayaran <= 0
-                ? Pembayaran::STATUS_LUNAS
-                : Pembayaran::STATUS_DP;
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE PEMBAYARAN
+            |--------------------------------------------------------------------------
+            */
 
             $pembayaran->update([
-                'total_bayar'       => $totalBayar,
-                'sisa_pembayaran'   => $sisaPembayaran,
-                'status_pembayaran' => $statusPembayaran,
-                'metode_pembayaran' => $validated['metode_pembayaran'],
-            ]);
+                'sisa_pembayaran' =>
+                $sisaPembayaran,
 
-            $pembayaran->reservasi->update([
-                'status_reservasi' =>
-                $statusPembayaran === Pembayaran::STATUS_LUNAS
-                    ? Reservasi::STATUS_CONFIRMED
-                    : Reservasi::STATUS_PROCESS,
+                'denda' =>
+                $denda,
+
+                'total_bayar' =>
+                $totalBayar,
+
+                'status_pembayaran' =>
+                Pembayaran::STATUS_LUNAS,
             ]);
         });
 
         return redirect()
             ->route('admin.pembayaran.index')
-            ->with('success', 'Pembayaran berhasil diperbarui.');
+            ->with(
+                'success',
+                'Denda berhasil diperbarui dan total pembayaran dihitung ulang.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPER - STATUS PEMBAYARAN
+    |--------------------------------------------------------------------------
+    */
+
+    private function determinePaymentStatus(
+        float $dp,
+        float $hargaFinal
+    ): string {
+
+        /*
+        |--------------------------------------------------------------------------
+        | HARGA FINAL 0
+        |--------------------------------------------------------------------------
+        |
+        | Jika harga final Rp0 karena diskon penuh,
+        | transaksi dianggap lunas.
+        |
+        */
+
+        if ($hargaFinal <= 0) {
+            return Pembayaran::STATUS_LUNAS;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | BELUM BAYAR
+        |--------------------------------------------------------------------------
+        */
+
+        if ($dp <= 0) {
+            return Pembayaran::STATUS_BELUM_BAYAR;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | LUNAS
+        |--------------------------------------------------------------------------
+        */
+
+        if ($dp >= $hargaFinal) {
+            return Pembayaran::STATUS_LUNAS;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DP
+        |--------------------------------------------------------------------------
+        */
+
+        return Pembayaran::STATUS_DP;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPER - STATUS RESERVASI
+    |--------------------------------------------------------------------------
+    */
+
+    private function determineReservationStatus(
+        string $statusPembayaran
+    ): string {
+
+        return match ($statusPembayaran) {
+
+            Pembayaran::STATUS_LUNAS =>
+            Reservasi::STATUS_CONFIRMED,
+
+            Pembayaran::STATUS_DP =>
+            Reservasi::STATUS_PROCESS,
+
+            Pembayaran::STATUS_BELUM_BAYAR =>
+            Reservasi::STATUS_PENDING,
+
+            default =>
+            Reservasi::STATUS_PENDING,
+        };
     }
 }

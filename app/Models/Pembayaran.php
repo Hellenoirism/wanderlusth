@@ -19,8 +19,8 @@ class Pembayaran extends Model
         'harga_final',
         'denda',
         'dp',
-        'total_bayar',
         'sisa_pembayaran',
+        'total_bayar',
         'status_pembayaran',
         'metode_pembayaran',
         'tanggal_pembayaran',
@@ -31,8 +31,8 @@ class Pembayaran extends Model
         'harga_final' => 'integer',
         'denda' => 'integer',
         'dp' => 'integer',
-        'total_bayar' => 'integer',
         'sisa_pembayaran' => 'integer',
+        'total_bayar' => 'integer',
         'tanggal_pembayaran' => 'date',
     ];
 
@@ -90,17 +90,52 @@ class Pembayaran extends Model
 
     public function getFormattedHargaFinalAttribute(): string
     {
-        return 'Rp ' . number_format($this->harga_final, 0, ',', '.');
+        return 'Rp ' . number_format(
+            $this->harga_final,
+            0,
+            ',',
+            '.'
+        );
     }
 
-    public function getFormattedTotalBayarAttribute(): string
+    public function getFormattedDpAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_bayar, 0, ',', '.');
+        return 'Rp ' . number_format(
+            $this->dp,
+            0,
+            ',',
+            '.'
+        );
     }
 
     public function getFormattedSisaPembayaranAttribute(): string
     {
-        return 'Rp ' . number_format($this->sisa_pembayaran, 0, ',', '.');
+        return 'Rp ' . number_format(
+            $this->sisa_pembayaran,
+            0,
+            ',',
+            '.'
+        );
+    }
+
+    public function getFormattedDendaAttribute(): string
+    {
+        return 'Rp ' . number_format(
+            $this->denda,
+            0,
+            ',',
+            '.'
+        );
+    }
+
+    public function getFormattedTotalBayarAttribute(): string
+    {
+        return 'Rp ' . number_format(
+            $this->total_bayar,
+            0,
+            ',',
+            '.'
+        );
     }
 
     public function getFormattedTanggalPembayaranAttribute(): string
@@ -109,7 +144,13 @@ class Pembayaran extends Model
             ? $this->tanggal_pembayaran->format('d M Y')
             : '-';
     }
-    
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS OPTIONS
+    |--------------------------------------------------------------------------
+    */
+
     public static function statusOptions(): array
     {
         return [

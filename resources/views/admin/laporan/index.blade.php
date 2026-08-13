@@ -5,100 +5,89 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="mx-auto max-w-7xl space-y-6">
 
-    {{-- HEADER --}}
-    <div>
+    {{-- =========================================================
+        HEADER
+    ========================================================== --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
-        <h2 class="text-2xl font-bold text-white">
-            Laporan Bulanan
-        </h2>
+        <div>
+            <div class="flex items-center gap-2">
 
-        <p class="text-sm text-blue-300">
-            Periode
-            {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
-            {{ $tahun }}
-        </p>
+                <span
+                    class="h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.7)]"
+                ></span>
 
-    </div>
+                <span
+                    class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300"
+                >
+                    Financial Report
+                </span>
 
-    {{-- FILTER --}}
-    <div class="flex flex-wrap items-center justify-between gap-3">
+            </div>
 
-        <form
-            method="GET"
-            class="flex flex-wrap gap-3"
-        >
+            <h2 class="mt-2 text-2xl font-bold tracking-tight text-white">
+                Laporan Bulanan
+            </h2>
 
-            <select
-                name="bulan"
-                class="rounded-lg bg-white px-3 py-2 pr-8 text-sm text-black"
-            >
+            <p class="mt-1 text-sm text-slate-400">
+                Ringkasan operasional dan keuangan periode
+                <span class="font-medium text-slate-300">
+                    {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
+                    {{ $tahun }}
+                </span>
+            </p>
+        </div>
 
-                @for ($i = 1; $i <= 12; $i++)
-
-                    <option
-                        value="{{ $i }}"
-                        @selected($bulan == $i)
-                    >
-
-                        {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
-
-                    </option>
-
-                @endfor
-
-            </select>
-
-            <select
-                name="tahun"
-                class="rounded-lg bg-white px-3 py-2 pr-8 text-sm text-black"
-            >
-
-                @for ($y = now()->year; $y >= now()->year - 5; $y--)
-
-                    <option
-                        value="{{ $y }}"
-                        @selected($tahun == $y)
-                    >
-
-                        {{ $y }}
-
-                    </option>
-
-                @endfor
-
-            </select>
-
-            <button
-                class="
-                    rounded-lg
-                    bg-indigo-600
-                    px-4 py-2
-                    text-sm text-white
-                    transition
-                    hover:bg-indigo-700
-                "
-            >
-
-                Filter
-
-            </button>
-
-        </form>
-
+        {{-- EXPORT PDF --}}
         <a
-            href="{{ route('admin.laporan.pdf', ['bulan' => $bulan, 'tahun' => $tahun]) }}"
+            href="{{ route('admin.laporan.pdf', [
+                'bulan' => $bulan,
+                'tahun' => $tahun
+            ]) }}"
             target="_blank"
             class="
-                rounded-lg
-                bg-red-600
-                px-4 py-2
-                text-sm text-white
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                border
+                border-red-500/20
+                bg-red-500/10
+                px-4
+                py-2.5
+                text-sm
+                font-semibold
+                text-red-300
                 transition
-                hover:bg-red-700
+                hover:border-red-500/30
+                hover:bg-red-500/20
+                hover:text-red-200
             "
         >
+
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 3v12m0 0l4-4m-4 4l-4-4"
+                />
+
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 21h14a2 2 0 002-2v-2M3 17v2a2 2 0 002 2"
+                />
+            </svg>
 
             Export PDF
 
@@ -106,299 +95,1252 @@
 
     </div>
 
-    {{-- SUMMARY --}}
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
 
-        <div class="rounded-xl border bg-white p-5 shadow">
+    {{-- =========================================================
+        FILTER
+    ========================================================== --}}
+    <div
+        class="
+            rounded-2xl
+            border
+            border-white/[0.08]
+            bg-[#0b1120]/80
+            p-4
+            shadow-xl
+            shadow-black/10
+            backdrop-blur-xl
+        "
+    >
 
-            <p class="text-sm text-slate-500">
-                Total Reservasi
-            </p>
+        <form
+            method="GET"
+            class="flex flex-col gap-3 sm:flex-row sm:items-end"
+        >
 
-            <p class="mt-2 text-3xl font-bold text-slate-800">
-                {{ $totalReservasi }}
-            </p>
+            {{-- BULAN --}}
+            <div class="w-full sm:w-48">
 
-        </div>
-
-        <div class="rounded-xl border bg-white p-5 shadow">
-
-            <p class="text-sm text-slate-500">
-                Total Pemasukan
-            </p>
-
-            <p
-                class="mt-2 text-2xl font-bold text-green-600"
-                data-currency-text="{{ $totalPemasukan }}"
-            >
-            </p>
-
-        </div>
-
-        <div class="rounded-xl border bg-white p-5 shadow">
-
-            <p class="text-sm text-slate-500">
-                Pembayaran Lunas
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-blue-600">
-                {{ $totalLunas }}
-            </p>
-
-        </div>
-
-        <div class="rounded-xl border bg-white p-5 shadow">
-
-            <p class="text-sm text-slate-500">
-                Pembayaran DP
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-yellow-600">
-                {{ $totalDP }}
-            </p>
-
-        </div>
-
-        <div class="rounded-xl border bg-white p-5 shadow">
-
-            <p class="text-sm text-slate-500">
-                Sisa Piutang
-            </p>
-
-            <p
-                class="mt-2 text-2xl font-bold text-red-600"
-                data-currency-text="{{ $totalPiutang }}"
-            >
-            </p>
-
-        </div>
-
-    </div>
-
-    {{-- ARMADA TERLARIS --}}
-    @if($armadaTerlaris)
-
-    <div class="rounded-2xl border bg-white p-6 shadow">
-
-        <h3 class="text-lg font-bold text-slate-800">
-            Armada Terlaris
-        </h3>
-
-        <div class="mt-3">
-
-            <p class="text-2xl font-semibold text-indigo-600">
-
-                {{ $armadaTerlaris->armada?->jenis_kendaraan }}
-
-            </p>
-
-            <p class="text-sm text-slate-500">
-
-                Digunakan
-                {{ $armadaTerlaris->total }}
-                kali selama periode ini
-
-            </p>
-
-        </div>
-
-    </div>
-
-    @endif
-
-    {{-- TABEL --}}
-    <div class="overflow-hidden rounded-2xl border bg-white shadow">
-
-        @if($reservasis->count())
-
-        <div class="overflow-x-auto">
-
-            <table class="w-full text-sm">
-
-                <thead
+                <label
+                    for="bulan"
                     class="
-                        bg-slate-100
-                        text-xs
+                        mb-2
+                        block
+                        text-[11px]
+                        font-semibold
                         uppercase
-                        tracking-wide
-                        text-slate-700
+                        tracking-[0.14em]
+                        text-slate-500
+                    "
+                >
+                    Bulan
+                </label>
+
+                <select
+                    id="bulan"
+                    name="bulan"
+                    class="
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-700/80
+                        bg-slate-900/70
+                        px-3
+                        py-2.5
+                        text-sm
+                        text-slate-200
+                        outline-none
+                        transition
+                        focus:border-indigo-500
+                        focus:ring-4
+                        focus:ring-indigo-500/10
                     "
                 >
 
-                    <tr>
+                    @for ($i = 1; $i <= 12; $i++)
 
-                        <th class="px-5 py-4 text-left">
-                            Pelanggan
-                        </th>
+                        <option
+                            value="{{ $i }}"
+                            @selected($bulan == $i)
+                        >
+                            {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
+                        </option>
 
-                        <th class="px-5 py-4 text-left">
-                            Armada
-                        </th>
+                    @endfor
 
-                        <th class="px-5 py-4 text-left">
-                            Tujuan
-                        </th>
+                </select>
 
-                        <th class="px-5 py-4 text-left">
-                            Tanggal
-                        </th>
+            </div>
 
-                        <th class="px-5 py-4 text-left">
-                            Harga Final
-                        </th>
 
-                        <th class="px-5 py-4 text-left">
-                            Pembayaran
-                        </th>
+            {{-- TAHUN --}}
+            <div class="w-full sm:w-40">
 
-                        <th class="px-5 py-4 text-center">
-                            Status
-                        </th>
+                <label
+                    for="tahun"
+                    class="
+                        mb-2
+                        block
+                        text-[11px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.14em]
+                        text-slate-500
+                    "
+                >
+                    Tahun
+                </label>
 
-                    </tr>
+                <select
+                    id="tahun"
+                    name="tahun"
+                    class="
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-700/80
+                        bg-slate-900/70
+                        px-3
+                        py-2.5
+                        text-sm
+                        text-slate-200
+                        outline-none
+                        transition
+                        focus:border-indigo-500
+                        focus:ring-4
+                        focus:ring-indigo-500/10
+                    "
+                >
 
-                </thead>
+                    @for ($y = now()->year; $y >= now()->year - 5; $y--)
 
-                <tbody class="divide-y divide-slate-200">
+                        <option
+                            value="{{ $y }}"
+                            @selected($tahun == $y)
+                        >
+                            {{ $y }}
+                        </option>
 
-                    @foreach($reservasis as $reservasi)
+                    @endfor
 
-                    <tr class="transition hover:bg-slate-50">
+                </select>
 
-                        {{-- PELANGGAN --}}
-                        <td class="px-5 py-4">
+            </div>
 
-                            <p class="font-semibold text-slate-800">
 
-                                {{ $reservasi->pelanggan?->nama ?? '-' }}
+            {{-- BUTTON FILTER --}}
+            <button
+                type="submit"
+                class="
+                    inline-flex
+                    h-[42px]
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    bg-indigo-600
+                    px-5
+                    text-sm
+                    font-semibold
+                    text-white
+                    shadow-lg
+                    shadow-indigo-600/20
+                    transition
+                    hover:bg-indigo-500
+                    hover:shadow-indigo-600/30
+                    focus:outline-none
+                    focus:ring-4
+                    focus:ring-indigo-500/20
+                "
+            >
 
-                            </p>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3 4h18M6 10h12M10 16h4M12 20v-4"
+                    />
+                </svg>
 
-                            <p class="text-xs text-slate-500">
+                Filter
 
-                                {{ $reservasi->pelanggan?->no_hp ?? '-' }}
+            </button>
 
-                            </p>
+        </form>
 
-                        </td>
+    </div>
 
-                        {{-- ARMADA --}}
-                        <td class="px-5 py-4">
 
-                            <p class="font-medium text-slate-800">
+    {{-- =========================================================
+        SUMMARY CARDS
+    ========================================================== --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-                                {{ $reservasi->armada?->jenis_kendaraan ?? '-' }}
+        {{-- TOTAL RESERVASI --}}
+        <div
+            class="
+                relative
+                overflow-hidden
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-[#0b1120]
+                p-5
+                shadow-xl
+                shadow-black/10
+            "
+        >
 
-                            </p>
+            <div
+                class="
+                    absolute
+                    -right-8
+                    -top-8
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-indigo-500/10
+                    blur-2xl
+                "
+            ></div>
 
-                        </td>
+            <div class="relative">
 
-                        {{-- TUJUAN --}}
-                        <td class="px-5 py-4">
+                <div class="flex items-center justify-between">
 
-                            {{ $reservasi->tujuan ?? '-' }}
+                    <p class="text-xs font-medium text-slate-500">
+                        Total Reservasi
+                    </p>
 
-                        </td>
+                    <div
+                        class="
+                            flex
+                            h-9
+                            w-9
+                            items-center
+                            justify-center
+                            rounded-xl
+                            bg-indigo-500/10
+                            text-indigo-400
+                        "
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
+                            />
+                        </svg>
+                    </div>
 
-                        {{-- TANGGAL --}}
-                        <td class="px-5 py-4">
+                </div>
 
-                            {{ \Carbon\Carbon::parse($reservasi->tanggal_reservasi)->format('d M Y') }}
+                <p class="mt-4 text-3xl font-bold text-white">
+                    {{ $totalReservasi }}
+                </p>
 
-                        </td>
+                <p class="mt-1 text-[11px] text-slate-500">
+                    Reservasi pada periode ini
+                </p>
 
-                        {{-- HARGA --}}
-                        <td class="px-5 py-4">
-
-                            <span
-                                data-currency-text="{{ $reservasi->pembayaran?->harga_final ?? 0 }}"
-                            >
-                            </span>
-
-                        </td>
-
-                        {{-- PEMBAYARAN --}}
-                        <td class="px-5 py-4">
-
-                            @if($reservasi->pembayaran)
-
-                                <div>
-
-                                    <p
-                                        class="font-semibold text-green-600"
-                                        data-currency-text="{{ $reservasi->pembayaran->total_bayar }}"
-                                    >
-                                    </p>
-
-                                    <p
-                                        class="text-xs text-red-500"
-                                        data-currency-text="{{ $reservasi->pembayaran->sisa_pembayaran }}"
-                                    >
-                                    </p>
-
-                                </div>
-
-                            @else
-
-                                -
-
-                            @endif
-
-                        </td>
-
-                        {{-- STATUS --}}
-                        <td class="px-5 py-4 text-center">
-
-                            <span
-                                @class([
-                                    'rounded-full px-3 py-1 text-xs font-semibold',
-
-                                    'bg-green-100 text-green-700'
-                                        => $reservasi->status_reservasi === 'Dikonfirmasi',
-
-                                    'bg-yellow-100 text-yellow-700'
-                                        => $reservasi->status_reservasi === 'Pending',
-
-                                    'bg-red-100 text-red-700'
-                                        => $reservasi->status_reservasi === 'Dibatalkan',
-
-                                    'bg-slate-100 text-slate-700'
-                                        => !in_array(
-                                            $reservasi->status_reservasi,
-                                            [
-                                                'Pending',
-                                                'Dikonfirmasi',
-                                                'Dibatalkan'
-                                            ]
-                                        ),
-                                ])
-                            >
-
-                                {{ $reservasi->status_reservasi }}
-
-                            </span>
-
-                        </td>
-
-                    </tr>
-
-                    @endforeach
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
+
+
+        {{-- TOTAL PEMASUKAN --}}
+        <div
+            class="
+                relative
+                overflow-hidden
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-[#0b1120]
+                p-5
+                shadow-xl
+                shadow-black/10
+            "
+        >
+
+            <div
+                class="
+                    absolute
+                    -right-8
+                    -top-8
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-emerald-500/10
+                    blur-2xl
+                "
+            ></div>
+
+            <div class="relative">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-xs font-medium text-slate-500">
+                        Total Pemasukan
+                    </p>
+
+                    <div
+                        class="
+                            flex
+                            h-9
+                            w-9
+                            items-center
+                            justify-center
+                            rounded-xl
+                            bg-emerald-500/10
+                            text-emerald-400
+                        "
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 6v12m4-9.5c0-1.38-1.79-2.5-4-2.5S8 7.12 8 8.5 9.79 11 12 11s4 1.12 4 2.5S14.21 16 12 16s-4-1.12-4-2.5"
+                            />
+                        </svg>
+                    </div>
+
+                </div>
+
+                <p class="mt-4 text-xl font-bold text-emerald-400">
+                    Rp {{ number_format($totalPemasukan ?? 0, 0, ',', '.') }}
+                </p>
+
+                <p class="mt-2 text-[11px] text-slate-500">
+                    Total pembayaran diterima
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- LUNAS --}}
+        <div
+            class="
+                relative
+                overflow-hidden
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-[#0b1120]
+                p-5
+                shadow-xl
+                shadow-black/10
+            "
+        >
+
+            <div
+                class="
+                    absolute
+                    -right-8
+                    -top-8
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-blue-500/10
+                    blur-2xl
+                "
+            ></div>
+
+            <div class="relative">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-xs font-medium text-slate-500">
+                        Pembayaran Lunas
+                    </p>
+
+                    <div
+                        class="
+                            flex
+                            h-9
+                            w-9
+                            items-center
+                            justify-center
+                            rounded-xl
+                            bg-blue-500/10
+                            text-blue-400
+                        "
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M5 13l4 4L19 7"
+                            />
+                        </svg>
+                    </div>
+
+                </div>
+
+                <p class="mt-4 text-3xl font-bold text-white">
+                    {{ $totalLunas }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-slate-500">
+                    Transaksi telah lunas
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- DP --}}
+        <div
+            class="
+                relative
+                overflow-hidden
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-[#0b1120]
+                p-5
+                shadow-xl
+                shadow-black/10
+            "
+        >
+
+            <div
+                class="
+                    absolute
+                    -right-8
+                    -top-8
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-amber-500/10
+                    blur-2xl
+                "
+            ></div>
+
+            <div class="relative">
+
+                <div class="flex items-center justify-between">
+
+                    <p class="text-xs font-medium text-slate-500">
+                        Pembayaran DP
+                    </p>
+
+                    <div
+                        class="
+                            flex
+                            h-9
+                            w-9
+                            items-center
+                            justify-center
+                            rounded-xl
+                            bg-amber-500/10
+                            text-amber-400
+                        "
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 8v4l3 2"
+                            />
+
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                            />
+                        </svg>
+                    </div>
+
+                </div>
+
+                <p class="mt-4 text-3xl font-bold text-white">
+                    {{ $totalDP }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-slate-500">
+                    Transaksi dengan pembayaran DP
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {{-- =========================================================
+        ARMADA TERLARIS
+    ========================================================== --}}
+    @if($armadaTerlaris)
+
+        <div
+            class="
+                relative
+                overflow-hidden
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-[#0b1120]
+                p-6
+                shadow-xl
+                shadow-black/10
+            "
+        >
+
+            <div
+                class="
+                    absolute
+                    -right-16
+                    -top-16
+                    h-40
+                    w-40
+                    rounded-full
+                    bg-purple-500/10
+                    blur-3xl
+                "
+            ></div>
+
+            <div
+                class="
+                    relative
+                    flex
+                    flex-col
+                    gap-5
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+            >
+
+                <div>
+
+                    <div class="flex items-center gap-2">
+
+                        <span
+                            class="
+                                flex
+                                h-8
+                                w-8
+                                items-center
+                                justify-center
+                                rounded-lg
+                                bg-purple-500/10
+                                text-purple-400
+                            "
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M3 13h18M5 13l1-5h12l1 5M5 13v5m14-5v5M7 18h2m6 0h2"
+                                />
+                            </svg>
+                        </span>
+
+                        <h3 class="text-sm font-semibold text-white">
+                            Armada Terlaris
+                        </h3>
+
+                    </div>
+
+                    <p class="mt-3 text-2xl font-bold text-indigo-400">
+                        {{ $armadaTerlaris->armada?->jenis_kendaraan ?? '-' }}
+                    </p>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Armada paling sering digunakan selama periode
+                        {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
+                        {{ $tahun }}.
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="
+                        shrink-0
+                        rounded-xl
+                        border
+                        border-indigo-500/10
+                        bg-indigo-500/5
+                        px-5
+                        py-4
+                        sm:min-w-[150px]
+                    "
+                >
+
+                    <p class="text-xs text-slate-500">
+                        Total penggunaan
+                    </p>
+
+                    <p class="mt-1 text-2xl font-bold text-white">
+                        {{ $armadaTerlaris->total }}
+
+                        <span class="text-sm font-medium text-slate-500">
+                            kali
+                        </span>
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
+
+    {{-- =========================================================
+        DETAIL RESERVASI
+    ========================================================== --}}
+    <div
+        class="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-white/[0.08]
+            bg-[#0b1120]
+            shadow-xl
+            shadow-black/10
+        "
+    >
+
+        {{-- TABLE HEADER --}}
+        <div
+            class="
+                flex
+                flex-col
+                gap-2
+                border-b
+                border-white/[0.06]
+                px-6
+                py-5
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
+            "
+        >
+
+            <div>
+
+                <h3 class="text-base font-semibold text-white">
+                    Detail Reservasi
+                </h3>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Daftar transaksi reservasi pada periode laporan.
+                </p>
+
+            </div>
+
+            <span
+                class="
+                    inline-flex
+                    w-fit
+                    items-center
+                    rounded-full
+                    border
+                    border-slate-700
+                    bg-slate-900/70
+                    px-3
+                    py-1
+                    text-[11px]
+                    font-medium
+                    text-slate-400
+                "
+            >
+                {{ $reservasis->count() }} data
+            </span>
+
+        </div>
+
+
+        @if($reservasis->count())
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full min-w-[1250px] text-sm">
+
+                    <thead
+                        class="
+                            border-b
+                            border-white/[0.06]
+                            bg-slate-900/40
+                        "
+                    >
+
+                        <tr>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-left
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Pelanggan
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-left
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Armada
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-left
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Tujuan
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-left
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Tanggal
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-right
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Harga Final
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-right
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                DP
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-right
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Denda
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-right
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Total Bayar
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-center
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Status Pembayaran
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-left
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Metode
+                            </th>
+
+                            <th
+                                class="
+                                    px-6
+                                    py-4
+                                    text-center
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-slate-500
+                                "
+                            >
+                                Status Reservasi
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-white/[0.05]">
+
+                        @foreach($reservasis as $reservasi)
+
+                            <tr
+                                class="
+                                    transition
+                                    hover:bg-white/[0.02]
+                                "
+                            >
+
+                                {{-- PELANGGAN --}}
+                                <td class="px-6 py-4">
+
+                                    <div>
+
+                                        <p class="font-medium text-slate-200">
+                                            {{ $reservasi->pelanggan?->nama ?? '-' }}
+                                        </p>
+
+                                        <p class="mt-1 text-xs text-slate-500">
+                                            {{ $reservasi->pelanggan?->no_hp ?? '-' }}
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+
+                                {{-- ARMADA --}}
+                                <td class="px-6 py-4">
+
+                                    <p class="font-medium text-slate-300">
+                                        {{ $reservasi->armada?->jenis_kendaraan ?? '-' }}
+                                    </p>
+
+                                </td>
+
+
+                                {{-- TUJUAN --}}
+                                <td class="max-w-[220px] px-6 py-4">
+
+                                    <p
+                                        class="truncate text-slate-400"
+                                        title="{{ $reservasi->tujuan ?? '-' }}"
+                                    >
+                                        {{ $reservasi->tujuan ?? '-' }}
+                                    </p>
+
+                                </td>
+
+
+                                {{-- TANGGAL --}}
+                                <td class="whitespace-nowrap px-6 py-4">
+
+                                    <p class="text-slate-300">
+                                        {{ \Carbon\Carbon::parse($reservasi->tanggal_reservasi)->format('d M Y') }}
+                                    </p>
+
+                                </td>
+
+
+                                {{-- HARGA FINAL --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-right">
+
+                                    <span class="font-semibold text-slate-200">
+                                        Rp
+                                        {{ number_format(
+                                            $reservasi->pembayaran?->harga_final ?? 0,
+                                            0,
+                                            ',',
+                                            '.'
+                                        ) }}
+                                    </span>
+
+                                </td>
+
+
+                                {{-- DP --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-right">
+
+                                    @if($reservasi->pembayaran && $reservasi->pembayaran->status_pembayaran === 'DP')
+
+                                        <span class="font-medium text-amber-400">
+                                            Rp
+                                            {{ number_format(
+                                                $reservasi->pembayaran->dp ?? 0,
+                                                0,
+                                                ',',
+                                                '.'
+                                            ) }}
+                                        </span>
+
+                                    @else
+
+                                        <span class="text-slate-600">
+                                            -
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- DENDA --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-right">
+
+                                    @if($reservasi->pembayaran && ($reservasi->pembayaran->denda ?? 0) > 0)
+
+                                        <span class="font-medium text-red-400">
+                                            Rp
+                                            {{ number_format(
+                                                $reservasi->pembayaran->denda,
+                                                0,
+                                                ',',
+                                                '.'
+                                            ) }}
+                                        </span>
+
+                                    @else
+
+                                        <span class="text-slate-600">
+                                            -
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- TOTAL BAYAR --}}
+                                <td class="whitespace-nowrap px-6 py-4 text-right">
+
+                                    @if($reservasi->pembayaran)
+
+                                        @php
+                                            // Jika status DP, hanya tampilkan DP
+                                            // Jika status Lunas, tampilkan total_bayar
+                                            $displayTotal = $reservasi->pembayaran->status_pembayaran === 'DP' 
+                                                ? $reservasi->pembayaran->dp 
+                                                : $reservasi->pembayaran->total_bayar;
+                                        @endphp
+
+                                        <span class="font-semibold text-emerald-400">
+                                            Rp
+                                            {{ number_format($displayTotal ?? 0, 0, ',', '.') }}
+                                        </span>
+
+                                    @else
+
+                                        <span class="text-slate-600">
+                                            -
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- STATUS PEMBAYARAN --}}
+                                <td class="px-6 py-4 text-center">
+
+                                    @if($reservasi->pembayaran)
+
+                                        @php
+                                            $statusPembayaran =
+                                                $reservasi->pembayaran->status_pembayaran;
+
+                                            $statusPembayaranClass = match ($statusPembayaran) {
+
+                                                'Lunas' =>
+                                                    'border-emerald-500/20 bg-emerald-500/10 text-emerald-400',
+
+                                                'DP' =>
+                                                    'border-amber-500/20 bg-amber-500/10 text-amber-400',
+
+                                                'Belum Bayar' =>
+                                                    'border-red-500/20 bg-red-500/10 text-red-400',
+
+                                                default =>
+                                                    'border-slate-700 bg-slate-800/50 text-slate-400',
+                                            };
+                                        @endphp
+
+                                        <span
+                                            class="
+                                                inline-flex
+                                                items-center
+                                                rounded-full
+                                                border
+                                                px-3
+                                                py-1
+                                                text-[11px]
+                                                font-semibold
+                                                {{ $statusPembayaranClass }}
+                                            "
+                                        >
+                                            {{ $statusPembayaran }}
+                                        </span>
+
+                                    @else
+
+                                        <span
+                                            class="
+                                                inline-flex
+                                                items-center
+                                                rounded-full
+                                                border
+                                                border-slate-700
+                                                bg-slate-800/50
+                                                px-3
+                                                py-1
+                                                text-[11px]
+                                                font-semibold
+                                                text-slate-500
+                                            "
+                                        >
+                                            Belum Ada
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- METODE PEMBAYARAN --}}
+                                <td class="px-6 py-4">
+
+                                    @if($reservasi->pembayaran?->metode_pembayaran)
+
+                                        <span class="text-slate-400">
+                                            {{ $reservasi->pembayaran->metode_pembayaran }}
+                                        </span>
+
+                                    @else
+
+                                        <span class="text-slate-600">
+                                            -
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                {{-- STATUS RESERVASI --}}
+                                <td class="px-6 py-4 text-center">
+
+                                    @php
+
+                                        $status = $reservasi->status_reservasi;
+
+                                        $statusClass = match ($status) {
+
+                                            'Dikonfirmasi' =>
+                                                'border-emerald-500/20 bg-emerald-500/10 text-emerald-400',
+
+                                            'Pending' =>
+                                                'border-amber-500/20 bg-amber-500/10 text-amber-400',
+
+                                            'Dibatalkan' =>
+                                                'border-red-500/20 bg-red-500/10 text-red-400',
+
+                                            'Diproses' =>
+                                                'border-blue-500/20 bg-blue-500/10 text-blue-400',
+
+                                            default =>
+                                                'border-slate-700 bg-slate-800/50 text-slate-400',
+                                        };
+
+                                    @endphp
+
+                                    <span
+                                        class="
+                                            inline-flex
+                                            items-center
+                                            rounded-full
+                                            border
+                                            px-3
+                                            py-1
+                                            text-[11px]
+                                            font-semibold
+                                            {{ $statusClass }}
+                                        "
+                                    >
+                                        {{ $status }}
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                        @endforeach
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         @else
 
-        <div class="py-16 text-center">
+            {{-- EMPTY STATE --}}
+            <div class="px-6 py-20 text-center">
 
-            <p class="text-sm text-slate-500">
-                Tidak ada data pada periode ini.
-            </p>
+                <div
+                    class="
+                        mx-auto
+                        flex
+                        h-14
+                        w-14
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        border
+                        border-slate-700
+                        bg-slate-900
+                        text-slate-600
+                    "
+                >
 
-        </div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 15h6"
+                        />
+                    </svg>
+
+                </div>
+
+                <h4 class="mt-4 text-sm font-semibold text-slate-300">
+                    Tidak ada data reservasi
+                </h4>
+
+                <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-500">
+                    Belum terdapat transaksi reservasi pada periode
+                    {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }}
+                    {{ $tahun }}.
+                </p>
+
+            </div>
 
         @endif
 
