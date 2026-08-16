@@ -94,7 +94,7 @@
 
     {{-- WHATSAPP --}}
     @php
-        $adminPhone = '6281234567890';
+        $adminPhone = '6285356969541';
 
         $message = urlencode(
             "Halo Admin Wanderlusth,\n\n" .
